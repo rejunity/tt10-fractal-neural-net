@@ -5,6 +5,10 @@
 
 `default_nettype none
 
+// `define SYNAPSES_1
+`define SYNAPSES_2
+//`define SYNAPSES_4
+
 module synapse_mul (
     input x,
     input weight_zero,
@@ -32,18 +36,43 @@ module tt_um_rejunity_fractal_nn (
   assign uio_oe  = 0;
 
   // List all unused inputs to prevent warnings
-  wire _unused = &{ena, clk, rst_n, ui_in[7:3], uio_in[7:0], 1'b0};
+  wire _unused = &{ena, clk, rst_n, ui_in, uio_in, 1'b0};
 
-  wire x = ui_in[0];
-  reg [1:0] w;
-  always @(posedge clk) w <= ui_in[2:1];
+`ifdef SYNAPSES_1
 
-  synapse_mul synapse_mul(
-    .x(x),
+  reg [1:0] w; always @(posedge clk) w <= ui_in[1:0];
+  synapse_mul synapse(
+    .x(uio_in[0]),
     .weight_zero(w[0]),
     .weight_sign(w[1]),
     .y(uo_out[1:0]));
-
   assign uo_out[7:2] = 0;
+
+`elsif SYNAPSES_2
+
+  reg [3:0] w; always @(posedge clk) w <= ui_in[3:0];
+  always @(posedge clk) w <= ui_in[1:0];
+
+  wire signed [1:0] y0, y1;
+  synapse_mul synapse0(
+    .x(uio_in[0]),
+    .weight_zero(w[0]),
+    .weight_sign(w[1]),
+    .y(y0));
+
+  synapse_mul synapse1(
+    .x(uio_in[1]),
+    .weight_zero(w[2]),
+    .weight_sign(w[3]),
+    .y(y1));
+
+  wire signed [2:0] y = y0 + y1;
+  assign uo_out[2:0] = y;
+  assign uo_out[7:3] = 0;
+  // assign uo_out = {4'b0, y1, y0};
+
+`else
+  assign uo_out = 0;
+`endif
 
 endmodule

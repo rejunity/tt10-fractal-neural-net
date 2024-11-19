@@ -25,53 +25,56 @@ async def test_project(dut):
 
     dut._log.info("Test project behavior")
 
-    # dut.nn_x.value = 1
-    # dut.nn_w_zero.value = 0
-    # dut.nn_w_sign.value = 0
-    dut.ui_in.value = 0b001
+    dut.uio_in.value = 1
+
+    dut.ui_in.value = 0b00
     await ClockCycles(dut.clk, 2)
     assert dut.uo_out.value == 1
 
-    # dut.nn_w_zero.value = 1
-    # dut.nn_w_sign.value = 0
-    dut.ui_in.value = 0b011
+    dut.ui_in.value = 0b01
     await ClockCycles(dut.clk, 2)
     assert dut.uo_out.value == 0
 
-    # dut.nn_w_zero.value = 0
-    # dut.nn_w_sign.value = 1
-    dut.ui_in.value = 0b101
+    dut.ui_in.value = 0b10
     await ClockCycles(dut.clk, 2)
-    assert dut.uo_out.value == 0b11
+    assert dut.uo_out.value == -1 & 0b111
 
-    # dut.nn_w_zero.value = 1
-    # dut.nn_w_sign.value = 1
-    dut.ui_in.value = 0b111
+    dut.ui_in.value = 0b11
     await ClockCycles(dut.clk, 2)
     assert dut.uo_out.value == 0
 
 
-    # dut.nn_x.value = 0
-    # dut.nn_w_zero.value = 0
-    # dut.nn_w_sign.value = 0
-    dut.ui_in.value = 0b000
+    dut.uio_in.value = 0
+
+    dut.ui_in.value = 0b00
     await ClockCycles(dut.clk, 2)
     assert dut.uo_out.value == 0
 
-    # dut.nn_w_zero.value = 1
-    # dut.nn_w_sign.value = 0
-    dut.ui_in.value = 0b010
+    dut.ui_in.value = 0b01
     await ClockCycles(dut.clk, 2)
     assert dut.uo_out.value == 0
 
-    # dut.nn_w_zero.value = 0
-    # dut.nn_w_sign.value = 1
-    dut.ui_in.value = 0b100
+    dut.ui_in.value = 0b10
     await ClockCycles(dut.clk, 2)
     assert dut.uo_out.value == 0
 
-    # dut.nn_w_zero.value = 1
-    # dut.nn_w_sign.value = 1
-    dut.ui_in.value = 0b110
+    dut.ui_in.value = 0b11
     await ClockCycles(dut.clk, 2)
     assert dut.uo_out.value == 0
+
+
+    dut.uio_in.value = 0b11
+
+    dut.ui_in.value = 0b0000
+    await ClockCycles(dut.clk, 2)
+    assert dut.uo_out.value == 2
+
+    dut.ui_in.value = 0b1010
+    await ClockCycles(dut.clk, 2)
+    assert dut.uo_out.value == -2 & 0b111
+
+    dut.ui_in.value = 0b0010
+    await ClockCycles(dut.clk, 2)
+    assert dut.uo_out.value == 0
+
+
