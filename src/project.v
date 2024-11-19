@@ -51,7 +51,6 @@ module tt_um_rejunity_fractal_nn (
 `elsif SYNAPSES_2
 
   reg [3:0] w; always @(posedge clk) w <= ui_in[3:0];
-  always @(posedge clk) w <= ui_in[1:0];
 
   wire signed [1:0] y0, y1;
   synapse_mul synapse0(
