@@ -35,9 +35,8 @@ module tt_um_rejunity_fractal_nn (
   wire _unused = &{ena, clk, rst_n, ui_in[7:3], uio_in[7:0], 1'b0};
 
   wire x = ui_in[0];
-  // reg [1:0] w;
-  // always @(posedge clk) w <= ui_in[2:1];
-  wire [1:0] w = ui_in[2:1];
+  reg [1:0] w;
+  always @(posedge clk) w <= ui_in[2:1];
 
   synapse_mul synapse_mul(
     .x(x),
