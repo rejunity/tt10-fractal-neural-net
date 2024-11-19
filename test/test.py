@@ -25,16 +25,53 @@ async def test_project(dut):
 
     dut._log.info("Test project behavior")
 
-    # Set the input values you want to test
-    dut.ui_in.value = 20
-    dut.uio_in.value = 30
-
-    # Wait for one clock cycle to see the output values
+    # dut.nn_x.value = 1
+    # dut.nn_w_zero.value = 0
+    # dut.nn_w_sign.value = 0
+    dut.ui_in.value = 0b001
     await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 1
 
-    # The following assersion is just an example of how to check the output values.
-    # Change it to match the actual expected output of your module:
-    assert dut.uo_out.value == 50
+    # dut.nn_w_zero.value = 1
+    # dut.nn_w_sign.value = 0
+    dut.ui_in.value = 0b011
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0
 
-    # Keep testing the module by changing the input values, waiting for
-    # one or more clock cycles, and asserting the expected output values.
+    # dut.nn_w_zero.value = 0
+    # dut.nn_w_sign.value = 1
+    dut.ui_in.value = 0b101
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0b11
+
+    # dut.nn_w_zero.value = 1
+    # dut.nn_w_sign.value = 1
+    dut.ui_in.value = 0b111
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0
+
+
+    # dut.nn_x.value = 0
+    # dut.nn_w_zero.value = 0
+    # dut.nn_w_sign.value = 0
+    dut.ui_in.value = 0b000
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0
+
+    # dut.nn_w_zero.value = 1
+    # dut.nn_w_sign.value = 0
+    dut.ui_in.value = 0b010
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0
+
+    # dut.nn_w_zero.value = 0
+    # dut.nn_w_sign.value = 1
+    dut.ui_in.value = 0b100
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0
+
+    # dut.nn_w_zero.value = 1
+    # dut.nn_w_sign.value = 1
+    dut.ui_in.value = 0b110
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0

@@ -5,7 +5,18 @@
 
 `default_nettype none
 
-module tt_um_example (
+module synapse_mul (
+    input x,
+    input weight_zero,
+    input weight_sign,
+    output signed [1:0] y
+);
+    assign y = (~x || weight_zero) ?  2'b00 : 
+                      weight_sign  ?  2'b11 :
+                                      2'b01 ;
+endmodule
+
+module tt_um_rejunity_fractal_nn (
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
@@ -17,11 +28,23 @@ module tt_um_example (
 );
 
   // All output pins must be assigned. If not used, assign to 0.
-  assign uo_out  = ui_in + uio_in;  // Example: ou_out is the sum of ui_in and uio_in
   assign uio_out = 0;
   assign uio_oe  = 0;
 
   // List all unused inputs to prevent warnings
-  wire _unused = &{ena, clk, rst_n, 1'b0};
+  wire _unused = &{ena, clk, rst_n, ui_in[7:3], uio_in[7:0], 1'b0};
+
+  wire x = ui_in[0];
+  // reg [1:0] w;
+  // always @(posedge clk) w <= ui_in[2:1];
+  wire [1:0] w = ui_in[2:1];
+
+  synapse_mul synapse_mul(
+    .x(x),
+    .weight_zero(w[0]),
+    .weight_sign(w[1]),
+    .y(uo_out[1:0]));
+
+  assign uo_out[7:2] = 0;
 
 endmodule

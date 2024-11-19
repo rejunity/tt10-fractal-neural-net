@@ -13,6 +13,17 @@ module tb ();
     #1;
   end
 
+  // wire nn_x;
+  // wire nn_w_zero;
+  // wire nn_w_sign;
+  // assign ui_in[0]   = nn_x;
+  // assign ui_in[2:1] = {nn_w_sign, nn_w_zero};
+
+  // wire nn_x      = ui_in[0];
+  // wire nn_w_zero = ui_in[1];
+  // wire nn_w_sign = ui_in[2];
+  // // wire signed [1:0] nn_out = ui_out[1:0];
+
   // Wire up the inputs and outputs:
   reg clk;
   reg rst_n;
@@ -28,7 +39,7 @@ module tb ();
 `endif
 
   // Replace tt_um_example with your module name:
-  tt_um_example user_project (
+  tt_um_rejunity_fractal_nn fractal_nn (
 
       // Include power ports for the Gate Level test:
 `ifdef GL_TEST
