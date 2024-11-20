@@ -128,7 +128,7 @@ module tt_um_rejunity_fractal_nn (
 
 
   reg [N*2-1:0] w;
-  reg [N*2-1:0] w_buf;
+  wire [N*2-1:0] w_buf;
   // always @(posedge clk) w <= { w[N*2-2:0], ui_in[0] };
   always @(posedge clk) w <= { w_buf[N*2-2:0], ui_in[0] };
 `ifdef SIM
