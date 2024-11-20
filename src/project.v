@@ -157,11 +157,33 @@ module tt_um_rejunity_fractal_nn (
     end
 
     if (N == 32) begin
-      wire signed [6:0] sum
-                         = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7] + y[ 8] + y[ 9]
-                         + y[10] + y[11] + y[12] + y[13] + y[14] + y[15] + y[16] + y[17] + y[18] + y[19]
-                         + y[20] + y[21] + y[22] + y[23] + y[24] + y[25] + y[26] + y[27] + y[28] + y[29]
-                         + y[30] + y[31];
+      // wire signed [6:0] sum
+      //                    = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7] + y[ 8] + y[ 9]
+      //                    + y[10] + y[11] + y[12] + y[13] + y[14] + y[15] + y[16] + y[17] + y[18] + y[19]
+      //                    + y[20] + y[21] + y[22] + y[23] + y[24] + y[25] + y[26] + y[27] + y[28] + y[29]
+      //                    + y[30] + y[31];
+
+      wire signed [2:0] y2[(N/2)-1:0];
+      for (i = 0; i < N/2; i = i+1) begin : add0
+        assign y2[i] = y[i*2+0] + y[i*2+1];
+      end
+
+      wire signed [3:0] y3[(N/4)-1:0];
+      for (i = 0; i < N/4; i = i+1) begin : add1
+        assign y3[i] = y2[i*2+0] + y2[i*2+1];
+      end
+
+      wire signed [4:0] y4[(N/8)-1:0];
+      for (i = 0; i < N/8; i = i+1) begin : add2
+        assign y4[i] = y3[i*2+0] + y3[i*2+1];
+      end
+
+      wire signed [5:0] y5[(N/16)-1:0];
+      for (i = 0; i < N/16; i = i+1) begin : add3
+        assign y5[i] = y4[i*2+0] + y4[i*2+1];
+      end
+
+      wire signed [6:0] sum = y5[0] + y5[1];
       assign uo_out = { 1'b0, sum };
     end else if (N == 16) begin
       wire signed [5:0] sum
