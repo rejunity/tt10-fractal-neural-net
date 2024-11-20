@@ -6,8 +6,8 @@
 `default_nettype none
 
 // `define SYNAPSES_1
-`define SYNAPSES_2
-//`define SYNAPSES_4
+// `define SYNAPSES_2
+`define SYNAPSES_4
 
 module synapse_mul (
     input x,
@@ -69,6 +69,39 @@ module tt_um_rejunity_fractal_nn (
   assign uo_out[2:0] = y;
   assign uo_out[7:3] = 0;
   // assign uo_out = {4'b0, y1, y0};
+
+`elsif SYNAPSES_4
+
+  reg [7:0] w; always @(posedge clk) w <= ui_in[7:0];
+
+  wire signed [1:0] y0, y1, y2, y3;
+  synapse_mul synapse0(
+    .x(uio_in[0]),
+    .weight_zero(w[0]),
+    .weight_sign(w[1]),
+    .y(y0));
+
+  synapse_mul synapse1(
+    .x(uio_in[1]),
+    .weight_zero(w[2]),
+    .weight_sign(w[3]),
+    .y(y1));
+
+  synapse_mul synapse2(
+    .x(uio_in[2]),
+    .weight_zero(w[4]),
+    .weight_sign(w[5]),
+    .y(y2));
+
+  synapse_mul synapse3(
+    .x(uio_in[3]),
+    .weight_zero(w[6]),
+    .weight_sign(w[7]),
+    .y(y3));
+
+  wire signed [3:0] y = y0 + y1 + y2 + y3;
+  assign uo_out[3:0] = y;
+  assign uo_out[7:4] = 0;
 
 `else
   assign uo_out = 0;
