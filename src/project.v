@@ -142,7 +142,8 @@ module tt_um_rejunity_fractal_nn (
 // `else
 //   assign w_buf = w[N*2-1:0];   // On SG13G2 no buffer is required, use direct assignment
 `else
-  sky130_fd_sc_hd__clkbuf_2 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
+  // sky130_fd_sc_hd__clkbuf_2 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
+  sky130_fd_sc_hd__dlygate4sd3_1 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
 `endif
 
   generate
