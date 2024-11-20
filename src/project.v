@@ -123,19 +123,33 @@ module tt_um_rejunity_fractal_nn (
 
 `elsif SYNAPSES_N
   localparam N = 32;
-  wire [N-1:0] x = {uio_in, uio_in, uio_in, uio_in};
+  wire [N-1:0] x = { uio_in, uio_in, uio_in, uio_in };
   wire signed [1:0] y[N-1:0];
 
+
   reg [N*2-1:0] w;
-  always @(posedge clk) w <= { w[N*2-2:0], ui_in[0] };
+  reg [N*2-1:0] w_buf;
+  // always @(posedge clk) w <= { w[N*2-2:0], ui_in[0] };
+  always @(posedge clk) w <= { w_buf[N*2-2:0], ui_in[0] };
+`ifdef SIM
+  /* verilator lint_off ASSIGNDLY */
+  buf i_w_buf[N*2-1:0] (w_buf, w[N*2-1:0]);
+  /* verilator lint_on ASSIGNDLY */
+`elsif SCL_sky130_fd_sc_hd
+  sky130_fd_sc_hd__clkbuf_2 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
+`elsif SCL_sky130_fd_sc_hs
+  sky130_fd_sc_hs__clkbuf_2 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
+`else
+  assign w_buf = w[N*2-1:0];   // On SG13G2 no buffer is required, use direct assignment
+`endif
 
   generate
     genvar i;
     for (i = 0; i < N; i = i+1) begin : syna
       synapse_mul mul(
         .x(x[i]),
-        .weight_zero(w[i*2+0]),
-        .weight_sign(w[i*2+1]),
+        .weight_zero(w_buf[i*2+0]),
+        .weight_sign(w_buf[i*2+1]),
         .y(y[i]));
     end
 
