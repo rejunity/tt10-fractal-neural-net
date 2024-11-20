@@ -8,6 +8,7 @@
 // `define SYNAPSES_1
 // `define SYNAPSES_2
 `define SYNAPSES_4
+`define SERIAL_WEIGHTS
 
 module synapse_mul (
     input x,
@@ -40,7 +41,12 @@ module tt_um_rejunity_fractal_nn (
 
 `ifdef SYNAPSES_1
 
-  reg [1:0] w; always @(posedge clk) w <= ui_in[1:0];
+  `ifdef SERIAL_WEIGHTS
+    always @(posedge clk) w <= { w[0], ui_in[0] };
+  `else
+    always @(posedge clk) w <= ui_in[1:0];
+  `endif
+
   synapse_mul synapse(
     .x(uio_in[0]),
     .weight_zero(w[0]),
@@ -50,7 +56,13 @@ module tt_um_rejunity_fractal_nn (
 
 `elsif SYNAPSES_2
 
-  reg [3:0] w; always @(posedge clk) w <= ui_in[3:0];
+  reg [3:0] w;
+  `ifdef SERIAL_WEIGHTS
+    always @(posedge clk) w <= { w[2:0], ui_in[0] };
+  `else
+    always @(posedge clk) w <= ui_in[3:0];
+  `endif
+
 
   wire signed [1:0] y0, y1;
   synapse_mul synapse0(
@@ -72,7 +84,12 @@ module tt_um_rejunity_fractal_nn (
 
 `elsif SYNAPSES_4
 
-  reg [7:0] w; always @(posedge clk) w <= ui_in[7:0];
+  reg [7:0] w;
+  `ifdef SERIAL_WEIGHTS
+    always @(posedge clk) w <= { w[6:0], ui_in[0] };
+  `else
+    always @(posedge clk) w <= ui_in[7:0];
+  `endif
 
   wire signed [1:0] y0, y1, y2, y3;
   synapse_mul synapse0(

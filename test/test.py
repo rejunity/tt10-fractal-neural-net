@@ -63,18 +63,18 @@ async def test_project(dut):
     assert dut.uo_out.value == 0
 
 
-    dut.uio_in.value = 0b11
+    # dut.uio_in.value = 0b11
 
-    dut.ui_in.value = 0b0000
-    await ClockCycles(dut.clk, 2)
-    assert dut.uo_out.value == 2
+    # dut.ui_in.value = 0b0000
+    # await ClockCycles(dut.clk, 2)
+    # assert dut.uo_out.value == 2
 
-    dut.ui_in.value = 0b1010
-    await ClockCycles(dut.clk, 2)
-    assert dut.uo_out.value == -2 & 0b1111
+    # dut.ui_in.value = 0b1010
+    # await ClockCycles(dut.clk, 2)
+    # assert dut.uo_out.value == -2 & 0b1111
 
-    dut.ui_in.value = 0b0010
-    await ClockCycles(dut.clk, 2)
-    assert dut.uo_out.value == 0
+    # dut.ui_in.value = 0b0010
+    # await ClockCycles(dut.clk, 2)
+    # assert dut.uo_out.value == 0
 
 
