@@ -7,7 +7,8 @@
 
 // `define SYNAPSES_1
 // `define SYNAPSES_2
-`define SYNAPSES_4
+// `define SYNAPSES_4
+`define SYNAPSES_N
 `define SERIAL_WEIGHTS
 
 module synapse_mul (
@@ -120,7 +121,53 @@ module tt_um_rejunity_fractal_nn (
   assign uo_out[3:0] = y;
   assign uo_out[7:4] = 0;
 
+`elsif SYNAPSES_N
+  localparam N = 32;
+  wire [N-1:0] x = {uio_in, uio_in, uio_in, uio_in};
+  wire signed [1:0] y[N-1:0];
+
+  reg [N*2-1:0] w;
+  always @(posedge clk) w <= { w[N*2-2:0], ui_in[0] };
+
+  generate
+    genvar i;
+    for (i = 0; i < N; i = i+1) begin : syna
+      synapse_mul mul(
+        .x(x[i]),
+        .weight_zero(w[i*2+0]),
+        .weight_sign(w[i*2+1]),
+        .y(y[i]));
+    end
+
+    if (N == 32) begin
+      wire signed [6:0] sum
+                         = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7] + y[ 8] + y[ 9]
+                         + y[10] + y[11] + y[12] + y[13] + y[14] + y[15] + y[16] + y[17] + y[18] + y[19]
+                         + y[20] + y[21] + y[22] + y[23] + y[24] + y[25] + y[26] + y[27] + y[28] + y[29]
+                         + y[30] + y[31];
+      assign uo_out = { 1'b0, sum };
+    end else if (N == 16) begin
+      wire signed [5:0] sum
+                         = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7] + y[ 8] + y[ 9]
+                         + y[10] + y[11] + y[12] + y[13] + y[14] + y[15];
+      assign uo_out = { 2'b0, sum };
+    end else if (N == 8) begin
+      wire signed [4:0] sum
+                         = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7];
+      assign uo_out = { 3'b0, sum };
+    end else if (N == 4) begin
+      wire signed [3:0] sum
+                         = y[ 0] + y[ 1] + y[ 2] + y[ 3];
+      assign uo_out = { 4'b0, sum };
+    end
+
+  endgenerate
+  
+
 `else
+
+    
+
   assign uo_out = 0;
 `endif
 

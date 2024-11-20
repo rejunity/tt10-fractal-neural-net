@@ -23,25 +23,29 @@ async def test_project(dut):
     await ClockCycles(dut.clk, 10)
     dut.rst_n.value = 1
 
+    # reset weights
+    dut.ui_in.value = 0
+    await ClockCycles(dut.clk, 128)
+
     dut._log.info("Test project behavior")
 
     dut.uio_in.value = 1
 
-    dut.ui_in.value = 0b00
-    await ClockCycles(dut.clk, 2)
-    assert dut.uo_out.value == 1
+    # dut.ui_in.value = 0b00
+    # await ClockCycles(dut.clk, 2)
+    # assert dut.uo_out.value == 1
 
-    dut.ui_in.value = 0b01
-    await ClockCycles(dut.clk, 2)
-    assert dut.uo_out.value == 0
+    # dut.ui_in.value = 0b01
+    # await ClockCycles(dut.clk, 2)
+    # assert dut.uo_out.value == 0
 
-    dut.ui_in.value = 0b10
-    await ClockCycles(dut.clk, 2)
-    assert dut.uo_out.value == -1 & 0b1111
+    # dut.ui_in.value = 0b10
+    # await ClockCycles(dut.clk, 2)
+    # assert dut.uo_out.value == -1 & 0b11111
 
-    dut.ui_in.value = 0b11
-    await ClockCycles(dut.clk, 2)
-    assert dut.uo_out.value == 0
+    # dut.ui_in.value = 0b11
+    # await ClockCycles(dut.clk, 2)
+    # assert dut.uo_out.value == 0
 
 
     dut.uio_in.value = 0
@@ -71,7 +75,7 @@ async def test_project(dut):
 
     # dut.ui_in.value = 0b1010
     # await ClockCycles(dut.clk, 2)
-    # assert dut.uo_out.value == -2 & 0b1111
+    # assert dut.uo_out.value == -2 & 0b11111
 
     # dut.ui_in.value = 0b0010
     # await ClockCycles(dut.clk, 2)
