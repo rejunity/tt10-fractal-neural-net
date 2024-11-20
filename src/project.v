@@ -135,12 +135,14 @@ module tt_um_rejunity_fractal_nn (
   /* verilator lint_off ASSIGNDLY */
   buf i_w_buf[N*2-1:0] (w_buf, w[N*2-1:0]);
   /* verilator lint_on ASSIGNDLY */
-`elsif SCL_sky130_fd_sc_hd
-  sky130_fd_sc_hd__clkbuf_2 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
-`elsif SCL_sky130_fd_sc_hs
-  sky130_fd_sc_hs__clkbuf_2 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
+// `elsif SCL_sky130_fd_sc_hd
+//   sky130_fd_sc_hd__clkbuf_2 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
+// `elsif SCL_sky130_fd_sc_hs
+//   sky130_fd_sc_hs__clkbuf_2 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
+// `else
+//   assign w_buf = w[N*2-1:0];   // On SG13G2 no buffer is required, use direct assignment
 `else
-  assign w_buf = w[N*2-1:0];   // On SG13G2 no buffer is required, use direct assignment
+  sky130_fd_sc_hd__clkbuf_2 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
 `endif
 
   generate
