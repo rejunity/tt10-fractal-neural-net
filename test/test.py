@@ -36,8 +36,8 @@ async def test_project(dut):
 
     dut._log.info("Test project behavior")
 
-    N = 32 // 8
-    # N = 1
+    # N = 32 // 8
+    N = 1
 
     dut.uio_in.value = 1
 
@@ -92,8 +92,11 @@ async def test_project(dut):
     assert dut.uo_out.value == 0x100-2*N
 
 
-    dut.uio_in.value = 0b1111_1111
-    K = 8
+    def set_rightmost_bits(n):
+        return (1 << n) - 1 # Generate a bitmask with the N rightmost bits set
+    
+    K = 4
+    dut.uio_in.value = set_rightmost_bits(K)
 
     await set_weights(dut, 0b00)
     await ClockCycles(dut.clk, 1)

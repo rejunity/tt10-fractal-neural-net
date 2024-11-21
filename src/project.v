@@ -8,7 +8,8 @@
 // `define SYNAPSES_1
 // `define SYNAPSES_2
 // `define SYNAPSES_4
-`define SYNAPSES_N
+`define SYNAPSES_4_ALT
+// `define SYNAPSES_N
 `define SERIAL_WEIGHTS
 
 module synapse_mul (
@@ -131,6 +132,34 @@ module tt_um_rejunity_fractal_nn (
   wire signed [3:0] y = y0 + y1 + y2 + y3;
   assign uo_out[3:0] = y;
   assign uo_out[7:4] = 0;
+
+`elsif SYNAPSES_4_ALT
+
+  reg [7:0] w;
+  `ifdef SERIAL_WEIGHTS
+    always @(posedge clk) w <= { w[6:0], ui_in[0] };
+  `else
+    always @(posedge clk) w <= ui_in[7:0];
+  `endif
+
+  wire [3:0] yp;
+  wire [3:0] yn;
+  generate
+    genvar i;
+    for (i = 0; i < 4; i = i+1) begin : syna
+      synapse_alt alt(
+        .x(uio_in[i]),
+        .weight_zero(w[i*2+0]),
+        .weight_sign(w[i*2+1]),
+        .positive(yp[i]),
+        .negative(yn[i]));
+    end
+  endgenerate
+
+  wire [3:0] p = yp[0] + yp[1] + yp[2] + yp[3];
+  wire [3:0] n = yn[0] + yn[1] + yn[2] + yn[3];
+  wire signed [3:0] sum = $signed(p) - $signed(n);
+  assign uo_out = { {4{sum[3]}}, sum };
 
 `elsif SYNAPSES_N
   localparam N = 32;
