@@ -134,7 +134,7 @@ module tt_um_rejunity_fractal_nn (
 
 `elsif SYNAPSES_N
   localparam N = 32;
-  wire [N-1:0] x = { uio_in, uio_in, uio_in, uio_in };
+  wire [N-1:0] x = {4{uio_in}};
   wire signed [1:0] y[N-1:0];
   wire yp[N-1:0];
   wire yn[N-1:0];
@@ -207,7 +207,7 @@ module tt_um_rejunity_fractal_nn (
 
       // wire signed [6:0] sum = y5[0] + y5[1];
 
-      // // C
+      // // C FAULTY
       // reg signed [6:0] sum = 0;
       // // integer n;
       // for (i = 0; i < N; i = i+1) begin : adder
