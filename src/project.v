@@ -245,7 +245,10 @@ module tt_um_rejunity_fractal_nn (
         assign n5[i] = n4[i*2+0] + n4[i*2+1];
       end
 
-      wire signed [6:0] sum = $signed(p5[0] + p5[1]) - $signed(n5[0] + n5[1]);
+      wire [5:0] p = p5[0] + p5[1];
+      wire [5:0] n = n5[0] + n5[1];
+
+      wire signed [6:0] sum = $signed(p) - $signed(n);
 
       // output
       assign uo_out = { sum[6], sum };
