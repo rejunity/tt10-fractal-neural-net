@@ -22,6 +22,17 @@ module synapse_mul (
                                       2'b01 ;
 endmodule
 
+module synapse_alt (
+    input x,
+    input weight_zero,
+    input weight_sign,
+    output positive,
+    output negative
+);
+    assign negative =  weight_sign && ~weight_zero && x;
+    assign positive = ~weight_sign && ~weight_zero && x;
+endmodule
+
 module tt_um_rejunity_fractal_nn (
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
@@ -125,6 +136,8 @@ module tt_um_rejunity_fractal_nn (
   localparam N = 32;
   wire [N-1:0] x = { uio_in, uio_in, uio_in, uio_in };
   wire signed [1:0] y[N-1:0];
+  wire yp[N-1:0];
+  wire yn[N-1:0];
 
 
   reg [N*2-1:0] w;
@@ -154,50 +167,102 @@ module tt_um_rejunity_fractal_nn (
         .weight_zero(w_buf[i*2+0]),
         .weight_sign(w_buf[i*2+1]),
         .y(y[i]));
+
+      synapse_alt alt(
+        .x(x[i]),
+        .weight_zero(w_buf[i*2+0]),
+        .weight_sign(w_buf[i*2+1]),
+        .positive(yp[i]),
+        .negative(yn[i]));
     end
 
     if (N == 32) begin
+      // // A
       // wire signed [6:0] sum
       //                    = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7] + y[ 8] + y[ 9]
       //                    + y[10] + y[11] + y[12] + y[13] + y[14] + y[15] + y[16] + y[17] + y[18] + y[19]
       //                    + y[20] + y[21] + y[22] + y[23] + y[24] + y[25] + y[26] + y[27] + y[28] + y[29]
       //                    + y[30] + y[31];
 
-      wire signed [2:0] y2[(N/2)-1:0];
+      // // B
+      // wire signed [2:0] y2 [(N/2)-1:0];
+      // for (i = 0; i < N/2; i = i+1) begin : add0
+      //   assign y2[i] = y[i*2+0] + y[i*2+1];
+      // end
+
+      // wire signed [3:0] y3 [(N/4)-1:0];
+      // for (i = 0; i < N/4; i = i+1) begin : add1
+      //   assign y3[i] = y2[i*2+0] + y2[i*2+1];
+      // end
+
+      // wire signed [4:0] y4 [(N/8)-1:0];
+      // for (i = 0; i < N/8; i = i+1) begin : add2
+      //   assign y4[i] = y3[i*2+0] + y3[i*2+1];
+      // end
+
+      // wire signed [5:0] y5 [(N/16)-1:0];
+      // for (i = 0; i < N/16; i = i+1) begin : add3
+      //   assign y5[i] = y4[i*2+0] + y4[i*2+1];
+      // end
+
+      // wire signed [6:0] sum = y5[0] + y5[1];
+
+      // // C
+      // reg signed [6:0] sum = 0;
+      // // integer n;
+      // for (i = 0; i < N; i = i+1) begin : adder
+      //   // for (n = 0; n < N; n = n+1)
+      //   always @(*)
+      //     sum = sum + y[i];
+      // end
+
+      // D
+      wire [1:0] p2 [(N/2)-1:0];
+      wire [1:0] n2 [(N/2)-1:0];
       for (i = 0; i < N/2; i = i+1) begin : add0
-        assign y2[i] = y[i*2+0] + y[i*2+1];
+        assign p2[i] = yp[i*2+0] + yp[i*2+1];
+        assign n2[i] = yn[i*2+0] + yn[i*2+1];
       end
 
-      wire signed [3:0] y3[(N/4)-1:0];
+      wire [2:0] p3 [(N/4)-1:0];
+      wire [2:0] n3 [(N/4)-1:0];
       for (i = 0; i < N/4; i = i+1) begin : add1
-        assign y3[i] = y2[i*2+0] + y2[i*2+1];
+        assign p3[i] = p2[i*2+0] + p2[i*2+1];
+        assign n3[i] = n2[i*2+0] + n2[i*2+1];
       end
 
-      wire signed [4:0] y4[(N/8)-1:0];
+      wire [3:0] p4 [(N/8)-1:0];
+      wire [3:0] n4 [(N/8)-1:0];
       for (i = 0; i < N/8; i = i+1) begin : add2
-        assign y4[i] = y3[i*2+0] + y3[i*2+1];
+        assign p4[i] = p3[i*2+0] + p3[i*2+1];
+        assign n4[i] = n3[i*2+0] + n3[i*2+1];
       end
 
-      wire signed [5:0] y5[(N/16)-1:0];
+      wire [4:0] p5 [(N/16)-1:0];
+      wire [4:0] n5 [(N/16)-1:0];
       for (i = 0; i < N/16; i = i+1) begin : add3
-        assign y5[i] = y4[i*2+0] + y4[i*2+1];
+        assign p5[i] = p4[i*2+0] + p4[i*2+1];
+        assign n5[i] = n4[i*2+0] + n4[i*2+1];
       end
 
-      wire signed [6:0] sum = y5[0] + y5[1];
-      assign uo_out = { 1'b0, sum };
+      wire signed [6:0] sum = $signed(p5[0] + p5[1]) - $signed(n5[0] + n5[1]);
+
+      // output
+      assign uo_out = { sum[6], sum };
+
     end else if (N == 16) begin
       wire signed [5:0] sum
                          = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7] + y[ 8] + y[ 9]
                          + y[10] + y[11] + y[12] + y[13] + y[14] + y[15];
-      assign uo_out = { 2'b0, sum };
+      assign uo_out = { {2{sum[5]}}, sum };
     end else if (N == 8) begin
       wire signed [4:0] sum
                          = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7];
-      assign uo_out = { 3'b0, sum };
+      assign uo_out = { {3{sum[4]}}, sum };
     end else if (N == 4) begin
       wire signed [3:0] sum
                          = y[ 0] + y[ 1] + y[ 2] + y[ 3];
-      assign uo_out = { 4'b0, sum };
+      assign uo_out = { {4{sum[3]}}, sum };
     end
 
   endgenerate
