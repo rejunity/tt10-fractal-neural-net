@@ -6,6 +6,13 @@ from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles
 
 
+async def set_weights(dut, weights, n=32):
+    for i in range(n):
+        dut.ui_in.value = (weights & 2) >> 1
+        await ClockCycles(dut.clk, 1)
+        dut.ui_in.value = (weights & 1)
+        await ClockCycles(dut.clk, 1)
+
 @cocotb.test()
 async def test_project(dut):
     dut._log.info("Start")
@@ -29,56 +36,56 @@ async def test_project(dut):
 
     dut._log.info("Test project behavior")
 
+    N = 32 // 8
+
     dut.uio_in.value = 1
 
-    # dut.ui_in.value = 0b00
-    # await ClockCycles(dut.clk, 2)
-    # assert dut.uo_out.value == 1
+    await set_weights(dut, 0b00)
+    await ClockCycles(dut.clk, 1)    
+    assert dut.uo_out.value == N
 
-    # dut.ui_in.value = 0b01
-    # await ClockCycles(dut.clk, 2)
-    # assert dut.uo_out.value == 0
+    await set_weights(dut, 0b01)
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0
 
-    # dut.ui_in.value = 0b10
-    # await ClockCycles(dut.clk, 2)
-    # assert dut.uo_out.value == -1 & 0b11111
+    await set_weights(dut, 0b10)
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0x100-N
 
-    # dut.ui_in.value = 0b11
-    # await ClockCycles(dut.clk, 2)
-    # assert dut.uo_out.value == 0
+    await set_weights(dut, 0b11)
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0
 
 
     dut.uio_in.value = 0
 
-    dut.ui_in.value = 0b00
-    await ClockCycles(dut.clk, 2)
+    await set_weights(dut, 0b00)
+    await ClockCycles(dut.clk, 1)
     assert dut.uo_out.value == 0
 
-    dut.ui_in.value = 0b01
-    await ClockCycles(dut.clk, 2)
+    await set_weights(dut, 0b01)
+    await ClockCycles(dut.clk, 1)
     assert dut.uo_out.value == 0
 
-    dut.ui_in.value = 0b10
-    await ClockCycles(dut.clk, 2)
+    await set_weights(dut, 0b10)
+    await ClockCycles(dut.clk, 1)
     assert dut.uo_out.value == 0
 
-    dut.ui_in.value = 0b11
-    await ClockCycles(dut.clk, 2)
+    await set_weights(dut, 0b11)
+    await ClockCycles(dut.clk, 1)
     assert dut.uo_out.value == 0
 
 
-    # dut.uio_in.value = 0b11
+    dut.uio_in.value = 0b11
 
-    # dut.ui_in.value = 0b0000
-    # await ClockCycles(dut.clk, 2)
-    # assert dut.uo_out.value == 2
+    await set_weights(dut, 0b00)
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 2*N
 
-    # dut.ui_in.value = 0b1010
-    # await ClockCycles(dut.clk, 2)
-    # assert dut.uo_out.value == -2 & 0b11111
+    await set_weights(dut, 0b01)
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0
 
-    # dut.ui_in.value = 0b0010
-    # await ClockCycles(dut.clk, 2)
-    # assert dut.uo_out.value == 0
-
-
+    await set_weights(dut, 0b10)
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0x100-2*N
