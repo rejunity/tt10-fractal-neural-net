@@ -37,6 +37,7 @@ async def test_project(dut):
     dut._log.info("Test project behavior")
 
     N = 32 // 8
+    # N = 1
 
     dut.uio_in.value = 1
 
@@ -89,3 +90,19 @@ async def test_project(dut):
     await set_weights(dut, 0b10)
     await ClockCycles(dut.clk, 1)
     assert dut.uo_out.value == 0x100-2*N
+
+
+    dut.uio_in.value = 0b1111_1111
+    K = 8
+
+    await set_weights(dut, 0b00)
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == K*N
+
+    await set_weights(dut, 0b01)
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0
+
+    await set_weights(dut, 0b10)
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0x100-K*N
