@@ -6,7 +6,7 @@ from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles
 
 
-async def set_weights(dut, weights, n=32):
+async def set_weights(dut, weights, n=64):
     for i in range(n):
         dut.ui_in.value = (weights & 2) >> 1
         await ClockCycles(dut.clk, 1)
@@ -36,7 +36,8 @@ async def test_project(dut):
 
     dut._log.info("Test project behavior")
 
-    N = 32 // 8
+    N = 64 // 8
+    # N = 32 // 8
     # N = 1
 
     dut.uio_in.value = 1

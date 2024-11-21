@@ -162,8 +162,8 @@ module tt_um_rejunity_fractal_nn (
   assign uo_out = { {4{sum[3]}}, sum };
 
 `elsif SYNAPSES_N
-  localparam N = 32;
-  wire [N-1:0] x = {4{uio_in}};
+  localparam N = 64;
+  wire [N-1:0] x = {8{uio_in}};
   wire signed [1:0] y[N-1:0];
   wire yp[N-1:0];
   wire yn[N-1:0];
@@ -205,7 +205,50 @@ module tt_um_rejunity_fractal_nn (
         .negative(yn[i]));
     end
 
-    if (N == 32) begin
+    if (N == 64) begin
+      wire [1:0] p2 [(N/2)-1:0];
+      wire [1:0] n2 [(N/2)-1:0];
+      for (i = 0; i < N/2; i = i+1) begin : add0
+        assign p2[i] = yp[i*2+0] + yp[i*2+1];
+        assign n2[i] = yn[i*2+0] + yn[i*2+1];
+      end
+
+      wire [2:0] p3 [(N/4)-1:0];
+      wire [2:0] n3 [(N/4)-1:0];
+      for (i = 0; i < N/4; i = i+1) begin : add1
+        assign p3[i] = p2[i*2+0] + p2[i*2+1];
+        assign n3[i] = n2[i*2+0] + n2[i*2+1];
+      end
+
+      wire [3:0] p4 [(N/8)-1:0];
+      wire [3:0] n4 [(N/8)-1:0];
+      for (i = 0; i < N/8; i = i+1) begin : add2
+        assign p4[i] = p3[i*2+0] + p3[i*2+1];
+        assign n4[i] = n3[i*2+0] + n3[i*2+1];
+      end
+
+      wire [4:0] p5 [(N/16)-1:0];
+      wire [4:0] n5 [(N/16)-1:0];
+      for (i = 0; i < N/16; i = i+1) begin : add3
+        assign p5[i] = p4[i*2+0] + p4[i*2+1];
+        assign n5[i] = n4[i*2+0] + n4[i*2+1];
+      end
+
+      wire [5:0] p6 [(N/32)-1:0];
+      wire [5:0] n6 [(N/32)-1:0];
+      for (i = 0; i < N/32; i = i+1) begin : add4
+        assign p6[i] = p5[i*2+0] + p5[i*2+1];
+        assign n6[i] = n5[i*2+0] + n5[i*2+1];
+      end
+
+      wire [7:0] p = p6[0] + p6[1];
+      wire [7:0] n = n6[0] + n6[1];
+
+      wire signed [7:0] sum = $signed(p) - $signed(n);
+
+      // output
+      assign uo_out = sum;
+    end else if (N == 32) begin
       // // A
       // wire signed [6:0] sum
       //                    = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7] + y[ 8] + y[ 9]
@@ -274,13 +317,28 @@ module tt_um_rejunity_fractal_nn (
         assign n5[i] = n4[i*2+0] + n4[i*2+1];
       end
 
-      wire [6:0] p = p5[0] + p5[1];
-      wire [6:0] n = n5[0] + n5[1];
+      // wire [6:0] p = p5[0] + p5[1];
+      // wire [6:0] n = n5[0] + n5[1];
 
-      wire signed [6:0] sum = $signed(p) - $signed(n);
+      // wire signed [6:0] sum = $signed(p) - $signed(n);
+
+      // // output
+      // assign uo_out = { sum[6], sum };
+
+      wire [5:0] p6 [(N/32)-1:0];
+      wire [5:0] n6 [(N/32)-1:0];
+      for (i = 0; i < N/32; i = i+1) begin : add4
+        assign p6[i] = p5[i*2+0] + p5[i*2+1];
+        assign n6[i] = n5[i*2+0] + n5[i*2+1];
+      end
+
+      wire [7:0] p = p6[0] + p6[1];
+      wire [7:0] n = n6[0] + n6[1];
+
+      wire signed [7:0] sum = $signed(p) - $signed(n);
 
       // output
-      assign uo_out = { sum[6], sum };
+      assign uo_out = sum;
 
     end else if (N == 16) begin
       wire signed [5:0] sum
