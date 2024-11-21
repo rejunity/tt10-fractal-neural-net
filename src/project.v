@@ -8,8 +8,8 @@
 // `define SYNAPSES_1
 // `define SYNAPSES_2
 // `define SYNAPSES_4
-`define SYNAPSES_4_ALT
-// `define SYNAPSES_N
+// `define SYNAPSES_4_ALT
+`define SYNAPSES_N
 `define SERIAL_WEIGHTS
 
 module synapse_mul (

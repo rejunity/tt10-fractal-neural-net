@@ -36,8 +36,8 @@ async def test_project(dut):
 
     dut._log.info("Test project behavior")
 
-    # N = 32 // 8
-    N = 1
+    N = 32 // 8
+    # N = 1
 
     dut.uio_in.value = 1
 
@@ -95,7 +95,7 @@ async def test_project(dut):
     def set_rightmost_bits(n):
         return (1 << n) - 1 # Generate a bitmask with the N rightmost bits set
     
-    K = 4
+    K = 8
     dut.uio_in.value = set_rightmost_bits(K)
 
     await set_weights(dut, 0b00)
