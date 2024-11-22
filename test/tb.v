@@ -24,6 +24,8 @@ module tb ();
   // wire nn_w_sign = ui_in[2];
   // // wire signed [1:0] nn_out = ui_out[1:0];
 
+  wire [15:0] out = { uio_out[7], uio_out[7:1], uo_out[7:0] };
+
   // Wire up the inputs and outputs:
   reg clk;
   reg rst_n;

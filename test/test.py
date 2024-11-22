@@ -15,6 +15,13 @@ async def set_weights(dut, weights, n=N):
         dut.ui_in.value = (weights & 1)
         await ClockCycles(dut.clk, 1)
 
+def get_output(dut):
+    value = dut.out.value.integer
+    value &= 0xFFFF  # Mask to 16 bits
+    if value & 0x8000:
+        value -= 0x10000
+    return value
+
 @cocotb.test()
 async def test_project(dut):
     dut._log.info("Start")
@@ -42,53 +49,53 @@ async def test_project(dut):
 
     await set_weights(dut, 0b00)
     await ClockCycles(dut.clk, 1)    
-    assert dut.uo_out.value == ND8
+    assert get_output(dut) == ND8
 
     await set_weights(dut, 0b01)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 0
+    assert get_output(dut) == 0
 
     await set_weights(dut, 0b10)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 0x100-ND8
+    assert get_output(dut) == -ND8
 
     await set_weights(dut, 0b11)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 0
+    assert get_output(dut) == 0
 
 
     dut.uio_in.value = 0
 
     await set_weights(dut, 0b00)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 0
+    assert get_output(dut) == 0
 
     await set_weights(dut, 0b01)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 0
+    assert get_output(dut) == 0
 
     await set_weights(dut, 0b10)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 0
+    assert get_output(dut) == 0
 
     await set_weights(dut, 0b11)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 0
+    assert get_output(dut) == 0
 
 
     dut.uio_in.value = 0b11
 
     await set_weights(dut, 0b00)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 2*ND8
+    assert get_output(dut) == 2*ND8
 
     await set_weights(dut, 0b01)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 0
+    assert get_output(dut) == 0
 
     await set_weights(dut, 0b10)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 0x100-2*ND8
+    assert get_output(dut) == -2*ND8
 
 
     def set_rightmost_bits(n):
@@ -99,16 +106,12 @@ async def test_project(dut):
 
     await set_weights(dut, 0b00)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == K*ND8
-    print(dut.uo_out.value)
-    assert dut.uio_out.value == 0
+    assert get_output(dut) == K*ND8
 
     await set_weights(dut, 0b01)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 0
+    assert get_output(dut) == 0
 
     await set_weights(dut, 0b10)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 0x100-K*ND8
-    print(dut.uo_out.value)
-    assert (dut.uio_out.value >> 1) == set_rightmost_bits(7)
+    assert get_output(dut) == -K*ND8
