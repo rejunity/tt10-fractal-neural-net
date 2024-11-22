@@ -29,8 +29,8 @@ Ternary vector `B` is stored internally in a shift register and values are uploa
 ## How to test
 
 128 element dot-product is computed every cycle.
-Also 1 element of the ternary vector B is uploaded every cycle.
-Values of vector B are not registered and change immediately.
+1 element of the ternary vector B is uploaded every cycle.
+Values of vector B are not stored in the register thus will change immediately.
 
 Examples:
 1) Set `ui_in = 0b1111_1111` and `uio_in = 0`. Wait for 128 cycles to update the whole ternary vector. On the next cycle expected value of `uo_out` is 128 * 1 = 0b1000_0000
