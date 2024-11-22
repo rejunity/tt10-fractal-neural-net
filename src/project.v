@@ -185,8 +185,10 @@ module tt_um_rejunity_fractal_nn (
 // `else
 //   assign w_buf = w[N*2-1:0];   // On SG13G2 no buffer is required, use direct assignment
 `else
+  /* verilator lint_off PINMISSING */
   // sky130_fd_sc_hd__clkbuf_2 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
   sky130_fd_sc_hd__dlygate4sd3_1 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
+  /* verilator lint_on PINMISSING */
 `endif
 
   generate
@@ -206,7 +208,7 @@ module tt_um_rejunity_fractal_nn (
         .negative(yn[i]));
     end
 
-    if (N == 128) begin
+    if (N == 128) begin : adder_tree_128
       wire [1:0] p2 [(N/2)-1:0];
       wire [1:0] n2 [(N/2)-1:0];
       for (i = 0; i < N/2; i = i+1) begin : add0
@@ -258,7 +260,7 @@ module tt_um_rejunity_fractal_nn (
       assign uo_out = sum[7:0];
       assign sum_hi = {8{sum[8]}};
 
-    end else if (N == 64) begin
+    end else if (N == 64) begin : adder_tree_64
       wire [1:0] p2 [(N/2)-1:0];
       wire [1:0] n2 [(N/2)-1:0];
       for (i = 0; i < N/2; i = i+1) begin : add0
@@ -302,7 +304,7 @@ module tt_um_rejunity_fractal_nn (
       // output
       assign uo_out = sum;
       assign sum_hi = {8{sum[7]}};
-    end else if (N == 32) begin
+    end else if (N == 32) begin : adder_tree_32
       // // A
       // wire signed [6:0] sum
       //                    = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7] + y[ 8] + y[ 9]
@@ -380,18 +382,18 @@ module tt_um_rejunity_fractal_nn (
       assign uo_out = {  sum[6], sum };
       assign sum_hi = {8{sum[6]}};
 
-    end else if (N == 16) begin
+    end else if (N == 16) begin : adder_tree_16
       wire signed [5:0] sum
                          = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7] + y[ 8] + y[ 9]
                          + y[10] + y[11] + y[12] + y[13] + y[14] + y[15];
       assign uo_out = { {2{sum[5]}}, sum };
       assign sum_hi =   {8{sum[5]}};
-    end else if (N == 8) begin
+    end else if (N == 8) begin : adder_tree_8
       wire signed [4:0] sum
                          = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7];
       assign uo_out = { {3{sum[4]}}, sum };
       assign sum_hi =   {8{sum[4]}};
-    end else if (N == 4) begin
+    end else if (N == 4) begin : adder_tree_4
       wire signed [3:0] sum
                          = y[ 0] + y[ 1] + y[ 2] + y[ 3];
       assign uo_out = { {4{sum[3]}}, sum };
