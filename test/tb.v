@@ -13,7 +13,7 @@ module tb ();
     #1;
   end
 
-  wire [15:0] out = { uio_out[7], uio_out[7:1], uo_out[7:0] };
+  wire [15:0] out = { {3{uio_out[7]}}, uio_out[6:2], uo_out[7:0] };
 
   // Wire up the inputs and outputs:
   reg clk;
