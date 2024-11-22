@@ -45,9 +45,9 @@ module tt_um_rejunity_fractal_nn (
     input  wire       rst_n     // reset_n - low to reset
 );
 
-  // All output pins must be assigned. If not used, assign to 0.
-  assign uio_out = 0;
-  assign uio_oe  = 0;
+  wire [7:0] sum_hi;
+  assign uio_oe  = 8'b1111_1110;
+  assign uio_out = {sum_hi[7:0], 1'b0};
 
   // List all unused inputs to prevent warnings
   wire _unused = &{ena, clk, rst_n, ui_in, uio_in, 1'b0};
@@ -65,7 +65,8 @@ module tt_um_rejunity_fractal_nn (
     .weight_zero(w[0]),
     .weight_sign(w[1]),
     .y(uo_out[1:0]));
-  assign uo_out[7:2] = 0;
+  assign uo_out[7:2] = {6{uo_out[1]}};
+  assign sum_hi = {8{uo_out[1]}};
 
 `elsif SYNAPSES_2
 
@@ -91,9 +92,8 @@ module tt_um_rejunity_fractal_nn (
     .y(y1));
 
   wire signed [2:0] y = y0 + y1;
-  assign uo_out[2:0] = y;
-  assign uo_out[7:3] = 0;
-  // assign uo_out = {4'b0, y1, y0};
+  assign uo_out = { {5{y[2]}}, y };
+  assign sum_hi =   {8{y[2]}};
 
 `elsif SYNAPSES_4
 
@@ -130,8 +130,8 @@ module tt_um_rejunity_fractal_nn (
     .y(y3));
 
   wire signed [3:0] y = y0 + y1 + y2 + y3;
-  assign uo_out[3:0] = y;
-  assign uo_out[7:4] = 0;
+  assign uo_out = { {4{y[3]}}, y };
+  assign sum_hi =   {8{y[3]}};
 
 `elsif SYNAPSES_4_ALT
 
@@ -160,10 +160,11 @@ module tt_um_rejunity_fractal_nn (
   wire [3:0] n = yn[0] + yn[1] + yn[2] + yn[3];
   wire signed [3:0] sum = $signed(p) - $signed(n);
   assign uo_out = { {4{sum[3]}}, sum };
+  assign sum_hi =   {8{sum[3]}};
 
 `elsif SYNAPSES_N
-  localparam N = 64;
-  wire [N-1:0] x = {8{uio_in}};
+  localparam N = 128;
+  wire [N-1:0] x = {(N/8){uio_in}};
   wire signed [1:0] y[N-1:0];
   wire yp[N-1:0];
   wire yn[N-1:0];
@@ -205,7 +206,59 @@ module tt_um_rejunity_fractal_nn (
         .negative(yn[i]));
     end
 
-    if (N == 64) begin
+    if (N == 128) begin
+      wire [1:0] p2 [(N/2)-1:0];
+      wire [1:0] n2 [(N/2)-1:0];
+      for (i = 0; i < N/2; i = i+1) begin : add0
+        assign p2[i] = yp[i*2+0] + yp[i*2+1];
+        assign n2[i] = yn[i*2+0] + yn[i*2+1];
+      end
+
+      wire [2:0] p3 [(N/4)-1:0];
+      wire [2:0] n3 [(N/4)-1:0];
+      for (i = 0; i < N/4; i = i+1) begin : add1
+        assign p3[i] = p2[i*2+0] + p2[i*2+1];
+        assign n3[i] = n2[i*2+0] + n2[i*2+1];
+      end
+
+      wire [3:0] p4 [(N/8)-1:0];
+      wire [3:0] n4 [(N/8)-1:0];
+      for (i = 0; i < N/8; i = i+1) begin : add2
+        assign p4[i] = p3[i*2+0] + p3[i*2+1];
+        assign n4[i] = n3[i*2+0] + n3[i*2+1];
+      end
+
+      wire [4:0] p5 [(N/16)-1:0];
+      wire [4:0] n5 [(N/16)-1:0];
+      for (i = 0; i < N/16; i = i+1) begin : add3
+        assign p5[i] = p4[i*2+0] + p4[i*2+1];
+        assign n5[i] = n4[i*2+0] + n4[i*2+1];
+      end
+
+      wire [5:0] p6 [(N/32)-1:0];
+      wire [5:0] n6 [(N/32)-1:0];
+      for (i = 0; i < N/32; i = i+1) begin : add4
+        assign p6[i] = p5[i*2+0] + p5[i*2+1];
+        assign n6[i] = n5[i*2+0] + n5[i*2+1];
+      end
+
+      wire [6:0] p7 [(N/64)-1:0];
+      wire [6:0] n7 [(N/64)-1:0];
+      for (i = 0; i < N/64; i = i+1) begin : add5
+        assign p7[i] = p6[i*2+0] + p6[i*2+1];
+        assign n7[i] = n6[i*2+0] + n6[i*2+1];
+      end
+
+      wire [8:0] p = p7[0] + p7[1];
+      wire [8:0] n = n7[0] + n7[1];
+
+      wire signed [8:0] sum = $signed(p) - $signed(n);
+
+      // output
+      assign uo_out = sum[7:0];
+      assign sum_hi = {8{sum[8]}};
+
+    end else if (N == 64) begin
       wire [1:0] p2 [(N/2)-1:0];
       wire [1:0] n2 [(N/2)-1:0];
       for (i = 0; i < N/2; i = i+1) begin : add0
@@ -248,6 +301,7 @@ module tt_um_rejunity_fractal_nn (
 
       // output
       assign uo_out = sum;
+      assign sum_hi = {8{sum[7]}};
     end else if (N == 32) begin
       // // A
       // wire signed [6:0] sum
@@ -317,50 +371,37 @@ module tt_um_rejunity_fractal_nn (
         assign n5[i] = n4[i*2+0] + n4[i*2+1];
       end
 
-      // wire [6:0] p = p5[0] + p5[1];
-      // wire [6:0] n = n5[0] + n5[1];
+      wire [6:0] p = p5[0] + p5[1];
+      wire [6:0] n = n5[0] + n5[1];
 
-      // wire signed [6:0] sum = $signed(p) - $signed(n);
-
-      // // output
-      // assign uo_out = { sum[6], sum };
-
-      wire [5:0] p6 [(N/32)-1:0];
-      wire [5:0] n6 [(N/32)-1:0];
-      for (i = 0; i < N/32; i = i+1) begin : add4
-        assign p6[i] = p5[i*2+0] + p5[i*2+1];
-        assign n6[i] = n5[i*2+0] + n5[i*2+1];
-      end
-
-      wire [7:0] p = p6[0] + p6[1];
-      wire [7:0] n = n6[0] + n6[1];
-
-      wire signed [7:0] sum = $signed(p) - $signed(n);
+      wire signed [6:0] sum = $signed(p) - $signed(n);
 
       // output
-      assign uo_out = sum;
+      assign uo_out = {  sum[6], sum };
+      assign sum_hi = {8{sum[6]}};
 
     end else if (N == 16) begin
       wire signed [5:0] sum
                          = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7] + y[ 8] + y[ 9]
                          + y[10] + y[11] + y[12] + y[13] + y[14] + y[15];
       assign uo_out = { {2{sum[5]}}, sum };
+      assign sum_hi =   {8{sum[5]}};
     end else if (N == 8) begin
       wire signed [4:0] sum
                          = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7];
       assign uo_out = { {3{sum[4]}}, sum };
+      assign sum_hi =   {8{sum[4]}};
     end else if (N == 4) begin
       wire signed [3:0] sum
                          = y[ 0] + y[ 1] + y[ 2] + y[ 3];
       assign uo_out = { {4{sum[3]}}, sum };
+      assign sum_hi =   {8{sum[3]}};
     end
 
   endgenerate
   
 
 `else
-
-    
 
   assign uo_out = 0;
 `endif

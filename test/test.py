@@ -5,8 +5,10 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles
 
+N = 128
+ND8 = N // 8
 
-async def set_weights(dut, weights, n=64):
+async def set_weights(dut, weights, n=N):
     for i in range(n):
         dut.ui_in.value = (weights & 2) >> 1
         await ClockCycles(dut.clk, 1)
@@ -36,15 +38,11 @@ async def test_project(dut):
 
     dut._log.info("Test project behavior")
 
-    N = 64 // 8
-    # N = 32 // 8
-    # N = 1
-
     dut.uio_in.value = 1
 
     await set_weights(dut, 0b00)
     await ClockCycles(dut.clk, 1)    
-    assert dut.uo_out.value == N
+    assert dut.uo_out.value == ND8
 
     await set_weights(dut, 0b01)
     await ClockCycles(dut.clk, 1)
@@ -52,7 +50,7 @@ async def test_project(dut):
 
     await set_weights(dut, 0b10)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 0x100-N
+    assert dut.uo_out.value == 0x100-ND8
 
     await set_weights(dut, 0b11)
     await ClockCycles(dut.clk, 1)
@@ -82,7 +80,7 @@ async def test_project(dut):
 
     await set_weights(dut, 0b00)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 2*N
+    assert dut.uo_out.value == 2*ND8
 
     await set_weights(dut, 0b01)
     await ClockCycles(dut.clk, 1)
@@ -90,7 +88,7 @@ async def test_project(dut):
 
     await set_weights(dut, 0b10)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 0x100-2*N
+    assert dut.uo_out.value == 0x100-2*ND8
 
 
     def set_rightmost_bits(n):
@@ -101,7 +99,9 @@ async def test_project(dut):
 
     await set_weights(dut, 0b00)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == K*N
+    assert dut.uo_out.value == K*ND8
+    print(dut.uo_out.value)
+    assert dut.uio_out.value == 0
 
     await set_weights(dut, 0b01)
     await ClockCycles(dut.clk, 1)
@@ -109,4 +109,6 @@ async def test_project(dut):
 
     await set_weights(dut, 0b10)
     await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 0x100-K*N
+    assert dut.uo_out.value == 0x100-K*ND8
+    print(dut.uo_out.value)
+    assert (dut.uio_out.value >> 1) == set_rightmost_bits(7)
