@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Your Name
+ * Copyright (c) 2024 ReJ aka Renaldas Zioma
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -34,7 +34,7 @@ module synapse_alt (
     assign positive = ~weight_sign && ~weight_zero && x;
 endmodule
 
-module tt_um_rejunity_fractal_nn (
+module tt_um_rejunity_ternary_dot (
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
@@ -46,22 +46,18 @@ module tt_um_rejunity_fractal_nn (
 );
 
   wire [7:0] sum_hi;
-  assign uio_oe  = 8'b1111_1110;
-  assign uio_out = {sum_hi[7:0], 1'b0};
+  assign uio_oe  = 8'b1111_1100;
+  assign uio_out = {sum_hi[6:0], 1'b00};
 
   // List all unused inputs to prevent warnings
-  wire _unused = &{ena, clk, rst_n, ui_in, uio_in, 1'b0};
+  wire _unused = &{ena, clk, rst_n, uio_in[7:2], 1'b0};
 
 `ifdef SYNAPSES_1
 
-  `ifdef SERIAL_WEIGHTS
-    always @(posedge clk) w <= { w[0], ui_in[0] };
-  `else
-    always @(posedge clk) w <= ui_in[1:0];
-  `endif
+  always @(posedge clk) w <= uio_in[1:0];
 
   synapse_mul synapse(
-    .x(uio_in[0]),
+    .x(ui_in[0]),
     .weight_zero(w[0]),
     .weight_sign(w[1]),
     .y(uo_out[1:0]));
@@ -72,21 +68,21 @@ module tt_um_rejunity_fractal_nn (
 
   reg [3:0] w;
   `ifdef SERIAL_WEIGHTS
-    always @(posedge clk) w <= { w[2:0], ui_in[0] };
+    always @(posedge clk) w <= { w[1:0], uio_in[1:0] };
   `else
-    always @(posedge clk) w <= ui_in[3:0];
+    always @(posedge clk) w <= uio_in[3:0];
   `endif
 
 
   wire signed [1:0] y0, y1;
   synapse_mul synapse0(
-    .x(uio_in[0]),
+    .x(ui_in[0]),
     .weight_zero(w[0]),
     .weight_sign(w[1]),
     .y(y0));
 
   synapse_mul synapse1(
-    .x(uio_in[1]),
+    .x(ui_in[1]),
     .weight_zero(w[2]),
     .weight_sign(w[3]),
     .y(y1));
@@ -99,32 +95,32 @@ module tt_um_rejunity_fractal_nn (
 
   reg [7:0] w;
   `ifdef SERIAL_WEIGHTS
-    always @(posedge clk) w <= { w[6:0], ui_in[0] };
+    always @(posedge clk) w <= { w[5:0], uio_in[1:0] };
   `else
-    always @(posedge clk) w <= ui_in[7:0];
+    always @(posedge clk) w <= uio_in[7:0];
   `endif
 
   wire signed [1:0] y0, y1, y2, y3;
   synapse_mul synapse0(
-    .x(uio_in[0]),
+    .x(ui_in[0]),
     .weight_zero(w[0]),
     .weight_sign(w[1]),
     .y(y0));
 
   synapse_mul synapse1(
-    .x(uio_in[1]),
+    .x(ui_in[1]),
     .weight_zero(w[2]),
     .weight_sign(w[3]),
     .y(y1));
 
   synapse_mul synapse2(
-    .x(uio_in[2]),
+    .x(ui_in[2]),
     .weight_zero(w[4]),
     .weight_sign(w[5]),
     .y(y2));
 
   synapse_mul synapse3(
-    .x(uio_in[3]),
+    .x(ui_in[3]),
     .weight_zero(w[6]),
     .weight_sign(w[7]),
     .y(y3));
@@ -137,9 +133,9 @@ module tt_um_rejunity_fractal_nn (
 
   reg [7:0] w;
   `ifdef SERIAL_WEIGHTS
-    always @(posedge clk) w <= { w[6:0], ui_in[0] };
+    always @(posedge clk) w <= { w[5:0], uio_in[1:0] };
   `else
-    always @(posedge clk) w <= ui_in[7:0];
+    always @(posedge clk) w <= uio_in[7:0];
   `endif
 
   wire [3:0] yp;
@@ -163,8 +159,8 @@ module tt_um_rejunity_fractal_nn (
   assign sum_hi =   {8{sum[3]}};
 
 `elsif SYNAPSES_N
-  localparam N = 256;
-  wire [N-1:0] x = {(N/8){uio_in}};
+  localparam N = 128;
+  wire [N-1:0] x = {(N/8){ui_in}};
   wire signed [1:0] y[N-1:0];
   wire yp[N-1:0];
   wire yn[N-1:0];
@@ -172,8 +168,7 @@ module tt_um_rejunity_fractal_nn (
 
   reg [N*2-1:0] w;
   wire [N*2-1:0] w_buf;
-  // always @(posedge clk) w <= { w[N*2-2:0], ui_in[0] };
-  always @(posedge clk) w <= { w_buf[N*2-2:0], ui_in[0] };
+  always @(posedge clk) w <= { w_buf[N*2-2-1:0], uio_in[1:0] };
 `ifdef SIM
   /* verilator lint_off ASSIGNDLY */
   buf i_w_buf[N*2-1:0] (w_buf, w[N*2-1:0]);

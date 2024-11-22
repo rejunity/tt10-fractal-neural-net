@@ -5,14 +5,12 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles
 
-N = 256
+N = 128
 ND8 = N // 8
 
 async def set_weights(dut, weights, n=N):
     for i in range(n):
-        dut.ui_in.value = (weights & 2) >> 1
-        await ClockCycles(dut.clk, 1)
-        dut.ui_in.value = (weights & 1)
+        dut.uio_in.value = weights
         await ClockCycles(dut.clk, 1)
 
 def get_output(dut):
@@ -45,7 +43,7 @@ async def test_project(dut):
 
     dut._log.info("Test project behavior")
 
-    dut.uio_in.value = 1
+    dut.ui_in.value = 1
 
     await set_weights(dut, 0b00)
     await ClockCycles(dut.clk, 1)    
@@ -64,7 +62,7 @@ async def test_project(dut):
     assert get_output(dut) == 0
 
 
-    dut.uio_in.value = 0
+    dut.ui_in.value = 0
 
     await set_weights(dut, 0b00)
     await ClockCycles(dut.clk, 1)
@@ -83,7 +81,7 @@ async def test_project(dut):
     assert get_output(dut) == 0
 
 
-    dut.uio_in.value = 0b11
+    dut.ui_in.value = 0b11
 
     await set_weights(dut, 0b00)
     await ClockCycles(dut.clk, 1)
@@ -102,7 +100,7 @@ async def test_project(dut):
         return (1 << n) - 1 # Generate a bitmask with the N rightmost bits set
     
     K = 8
-    dut.uio_in.value = set_rightmost_bits(K)
+    dut.ui_in.value = set_rightmost_bits(K)
 
     await set_weights(dut, 0b00)
     await ClockCycles(dut.clk, 1)
