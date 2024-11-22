@@ -163,7 +163,7 @@ module tt_um_rejunity_fractal_nn (
   assign sum_hi =   {8{sum[3]}};
 
 `elsif SYNAPSES_N
-  localparam N = 128;
+  localparam N = 256;
   wire [N-1:0] x = {(N/8){uio_in}};
   wire signed [1:0] y[N-1:0];
   wire yp[N-1:0];
@@ -208,7 +208,66 @@ module tt_um_rejunity_fractal_nn (
         .negative(yn[i]));
     end
 
-    if (N == 128) begin : adder_tree_128
+    if (N == 256) begin : adder_tree_128
+      wire [1:0] p2 [(N/2)-1:0];
+      wire [1:0] n2 [(N/2)-1:0];
+      for (i = 0; i < N/2; i = i+1) begin : add0
+        assign p2[i] = yp[i*2+0] + yp[i*2+1];
+        assign n2[i] = yn[i*2+0] + yn[i*2+1];
+      end
+
+      wire [2:0] p3 [(N/4)-1:0];
+      wire [2:0] n3 [(N/4)-1:0];
+      for (i = 0; i < N/4; i = i+1) begin : add1
+        assign p3[i] = p2[i*2+0] + p2[i*2+1];
+        assign n3[i] = n2[i*2+0] + n2[i*2+1];
+      end
+
+      wire [3:0] p4 [(N/8)-1:0];
+      wire [3:0] n4 [(N/8)-1:0];
+      for (i = 0; i < N/8; i = i+1) begin : add2
+        assign p4[i] = p3[i*2+0] + p3[i*2+1];
+        assign n4[i] = n3[i*2+0] + n3[i*2+1];
+      end
+
+      wire [4:0] p5 [(N/16)-1:0];
+      wire [4:0] n5 [(N/16)-1:0];
+      for (i = 0; i < N/16; i = i+1) begin : add3
+        assign p5[i] = p4[i*2+0] + p4[i*2+1];
+        assign n5[i] = n4[i*2+0] + n4[i*2+1];
+      end
+
+      wire [5:0] p6 [(N/32)-1:0];
+      wire [5:0] n6 [(N/32)-1:0];
+      for (i = 0; i < N/32; i = i+1) begin : add4
+        assign p6[i] = p5[i*2+0] + p5[i*2+1];
+        assign n6[i] = n5[i*2+0] + n5[i*2+1];
+      end
+
+      wire [6:0] p7 [(N/64)-1:0];
+      wire [6:0] n7 [(N/64)-1:0];
+      for (i = 0; i < N/64; i = i+1) begin : add5
+        assign p7[i] = p6[i*2+0] + p6[i*2+1];
+        assign n7[i] = n6[i*2+0] + n6[i*2+1];
+      end
+
+      wire [7:0] p8 [(N/128)-1:0];
+      wire [7:0] n8 [(N/128)-1:0];
+      for (i = 0; i < N/128; i = i+1) begin : add6
+        assign p8[i] = p7[i*2+0] + p7[i*2+1];
+        assign n8[i] = n7[i*2+0] + n7[i*2+1];
+      end
+
+      wire [9:0] p = p8[0] + p8[1];
+      wire [9:0] n = n8[0] + n8[1];
+
+      wire signed [9:0] sum = $signed(p) - $signed(n);
+
+      // output
+      assign uo_out = sum[7:0];
+      assign sum_hi = {{6{sum[9]}}, sum[9:8]};
+
+    end else if (N == 128) begin : adder_tree_128
       wire [1:0] p2 [(N/2)-1:0];
       wire [1:0] n2 [(N/2)-1:0];
       for (i = 0; i < N/2; i = i+1) begin : add0

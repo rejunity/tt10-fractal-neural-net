@@ -5,7 +5,7 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles
 
-N = 128
+N = 256
 ND8 = N // 8
 
 async def set_weights(dut, weights, n=N):
