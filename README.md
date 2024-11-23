@@ -20,16 +20,16 @@ $$y=\sum_{i=1}^{N} {\color{Red} A_{i}}\times {\color{Green} B_{i}},
 
 ### Silicon area
 
-| Vector size | Adder tree depth | Output type | # of logic cells | Wire length | Dimensions | Area | Tiles |
-|-------------|------------------|-------------|------------------|-------------|------------|------|-------|
-| 1       | - | 2-bit signed |    2|   215 um|  18 x 11 um |  198 um<sup>2</sup> | 0.9%|  
-| 2       | 1 | 3-bit signed |   10|   395 um|  45 x 8 um  |  360 um<sup>2</sup> | 1.6%| 
-| 4       | 2 | 4-bit signed |   31|   757 um|  60 x 11 um |  660 um<sup>2</sup> | 3.8%|
+| Vector size | Adder tree depth | Output type | # of logic cells | Total # of cells | Wire length (um) | Dimensions (um) | Area (um<sup>2</sup>) | Tiles |
+|-------------|------------------|-------------|------------------|------------------|-------------|------------|------|-------|
+| 1       | - | 2-bit signed |    2|  32|  215|  18 x 11 |  198 um<sup>2</sup> | 0.9%|  
+| 2       | 1 | 3-bit signed |   10|  44|  395|  45 x 8  |  360 um<sup>2</sup> | 1.6%| 
+| 4       | 2 | 4-bit signed |   31|  77|  757|  60 x 11 |  660 um<sup>2</sup> | 3.8%|
 ||||||||
-| 32      | 5 | 7-bit signed |  336|  9982 um| 112 x 70 um | 7840 um<sup>2</sup> | 36%|
-| 64      | 6 | 8-bit signed |  737| 23329 um| 160 x 86 um |13760 um<sup>2</sup> | 75%|
-| 128*    | 7 | 9-bit signed | 1472| 59822 um| 112 x 200 um|22400 um<sup>2</sup> | **143%**|
-| 256     | 8 |10-bit signed | 2941|151707 um| 320 x 112 um|35840 um<sup>2</sup> | 269%|
+| 32      | 5 | 7-bit signed |  336| 508|  9982| 112 x 70 | 7840 um<sup>2</sup> | 36%|
+| 64      | 6 | 8-bit signed |  737|1073| 23329| 160 x 86 |13760 um<sup>2</sup> | 75%|
+| 128*    | 7 | 9-bit signed | 1472|2121| 59822| 112 x 200|**22400 um<sup>2</sup>** | **143%**|
+| 256     | 8 |10-bit signed | 2941|4207|151707| 320 x 112|35840 um<sup>2</sup> | 269%|
 
 *) *Version taped out with TinyTapeout 10*
 
