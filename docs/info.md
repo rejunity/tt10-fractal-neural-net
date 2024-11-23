@@ -9,20 +9,22 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-This is an experimental ASIC that computes dot-product between ternary {-1,0,1} and a binary {0,1} vectors with a length of 128 elements in 1 cycle!
-Note this experiment is intended mainly to measure silicon area necessary to fit a dot-product of a particular size and this circuitry is NOT intended for a practical use, therefore binary vector A is formed by repeating the same values multiple times.
+This is an experimental ASIC that computes dot-product between ternary `{-1,0,1}` and a binary `{0,1}` vectors with a length of 128 elements in 1 cycle!
 
-```sum(A * B)```
+Note this experiment is intended mainly to measure silicon area for a dot-product rather than for a practical use, therefore binary vector A is formed by repeating the same values multiple times.
 
-Binary vector A is not stored internally, but is formed by repeating values of the INPUT bus: {ui_in[7], ui_in[6], ui_in[5], ui_in[4], ui_in[3], ui_in[2], ui_in[1], ui_in[0], ui_in[7] ... ui_in[0] }`
-Ternary vector B is stored internally in a shift register and values are uploaded in a serial fashion via pins `uio_in[1]` and`uio_in[0]` on a BIDIRECTIONAL bus. Every cycle 2 bits are set and register is shifted by 2 bits.
+```y = sum(A[i] * B[i])```
 
-      | BIT representation | Ternary value |
-      |--------------------|---------------|
-      | 00       (0)       |       1       |
-      | 01       (1)       |       0       |
-      | 10       (2)       |      -1       |
-      | 11       (3)       |       0       |
+Binary vector `A` is not stored internally, but is formed by repeating values on the INPUT bus: `{ui_in[7], ui_in[6], ui_in[5], ui_in[4], ui_in[3], ui_in[2], ui_in[1], ui_in[0], ui_in[7] ... ui_in[0]}`
+
+Ternary vector `B` is stored internally in a shift register and values are uploaded in a serial fashion via pins `uio_in[1]` and `uio_in[0]` on a BIDIRECTIONAL bus. Every cycle 2 bits are set and register is shifted by 2 bits.
+
+| DEC representation | BIT representation | Ternary value |
+|-----------|--------------|---------------|
+| 0         |     00       |       1       |
+| 1         |     01       |       0       |
+| 2         |     10       |      -1       |
+| 3         |     11       |       0       |
 
 ## How to test
 
