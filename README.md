@@ -1,6 +1,6 @@
 ![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/test/badge.svg) ![](../../workflows/fpga/badge.svg)
 
-# Large ternary dot product (synaptic tree in a silicon neuron)
+# Large (128 element) ternary dot product (synaptic tree in a silicon neuron)
 
 Goal of this project is to measure and analyse the scaling of the silicon area needed for large ternary dot product area.
 This is part of a larger work to explore various architectures for Neural Networks on Chip.
@@ -15,8 +15,9 @@ $$y=\sum_{i=1}^{N} {\color{Red} A_{i}}\times {\color{Green} B_{i}},
 \quad
 {\color{Green} B } \in 0, 1 $$
 
-**128** element dot-product is computed **each cycle**. At a nominal frequency of **50 MHz** this design achieves a performance of `6.4 Giga OP/s`.
+### Performance
 
+**128** element dot-product is computed **each cycle**. At a nominal ASIC frequency of **50 MHz** this design achieves a performance of `6.4 Giga OP/s`.
 
 ### Silicon area
 
@@ -32,6 +33,15 @@ $$y=\sum_{i=1}^{N} {\color{Red} A_{i}}\times {\color{Green} B_{i}},
 | 256     | 8 |10-bit signed | 2941|4207|151707| 320 x 112|35840 um<sup>2</sup> | 269%|
 
 *) *Version taped out with TinyTapeout 10*
+
+### Physical layout for a 128 element dot product
+![128synapses_1x2tiles_layout](https://github.com/user-attachments/assets/992c77d7-3006-492a-9d75-d1a13e4c0221)
+_Left:_ **blue cells** - compute, **white cells** - ternary vector storage \
+_Right:_ **wires** connecting cells
+
+### Physical layout for a 32 element dot product
+![32synapses_1tile_layout](https://github.com/user-attachments/assets/ecb97759-9543-4f86-af8d-4a06ad97a2fc)
+**blue cells** - compute, **white cells** - ternary vector storage
 
 # How to test?
 Read the project's [documentation](docs/info.md).
