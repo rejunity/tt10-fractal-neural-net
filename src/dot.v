@@ -47,7 +47,6 @@ module tt_um_rejunity_ternary_dot (
 
   wire [7:0] sum_hi;
   assign uio_oe  = 8'b1111_1100;
-  assign uio_out = {sum_hi[6:0], 1'b00};
   assign UIO_OUT = {sum_hi[5:0], 2'b00};
 
   // List all unused inputs to prevent warnings
