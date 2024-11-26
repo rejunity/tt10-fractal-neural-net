@@ -5,6 +5,8 @@
 
 `default_nettype none
 
+`define REGISTER_INPUTS_OUTPUTS
+
 // `define SYNAPSES_1
 // `define SYNAPSES_2
 // `define SYNAPSES_4
@@ -49,6 +51,33 @@ module tt_um_rejunity_ternary_dot (
   assign uio_oe  = 8'b1111_1100;
   assign UIO_OUT = {sum_hi[5:0], 2'b00};
 
+`ifdef REGISTER_INPUTS_OUTPUTS
+  reg [7:0] UI_IN;
+  reg [7:0] UIO_IN; 
+  wire [7:0] UO_OUT;
+  wire [7:0] UIO_OUT;
+  reg [7:0] reg_uo_out;
+  reg [7:0] reg_uio_out;
+
+  always @(posedge clk) UI_IN <= ui_in;
+  always @(posedge clk) UIO_IN <= uio_in;
+  always @(posedge clk) reg_uo_out <= UO_OUT;
+  always @(posedge clk) reg_uio_out <= UIO_OUT;
+
+  assign uo_out = reg_uo_out;
+  assign uio_out = reg_uio_out;
+
+`else
+
+  wire [7:0] UI_IN = ui_in;
+  wire [7:0] UIO_IN = uio_in;
+  wire [7:0] UO_OUT;
+  wire [7:0] UIO_OUT;
+
+  assign uo_out = UO_OUT;
+  assign uio_out = UIO_OUT;
+`endif
+
   // List all unused inputs to prevent warnings
   wire _unused = &{ena, clk, rst_n, uio_in[7:2], 1'b0};
 
@@ -57,12 +86,12 @@ module tt_um_rejunity_ternary_dot (
   always @(posedge clk) w <= uio_in[1:0];
 
   synapse_mul synapse(
-    .x(ui_in[0]),
+    .x(UI_IN[0]),
     .weight_zero(w[0]),
     .weight_sign(w[1]),
-    .y(uo_out[1:0]));
-  assign uo_out[7:2] = {6{uo_out[1]}};
-  assign sum_hi = {8{uo_out[1]}};
+    .y(UO_OUT[1:0]));
+  assign UO_OUT[7:2] = {6{UO_OUT[1]}};
+  assign sum_hi = {8{UO_OUT[1]}};
 
 `elsif SYNAPSES_2
 
@@ -76,19 +105,19 @@ module tt_um_rejunity_ternary_dot (
 
   wire signed [1:0] y0, y1;
   synapse_mul synapse0(
-    .x(ui_in[0]),
+    .x(UI_IN[0]),
     .weight_zero(w[0]),
     .weight_sign(w[1]),
     .y(y0));
 
   synapse_mul synapse1(
-    .x(ui_in[1]),
+    .x(UI_IN[1]),
     .weight_zero(w[2]),
     .weight_sign(w[3]),
     .y(y1));
 
   wire signed [2:0] y = y0 + y1;
-  assign uo_out = { {5{y[2]}}, y };
+  assign UO_OUT = { {5{y[2]}}, y };
   assign sum_hi =   {8{y[2]}};
 
 `elsif SYNAPSES_4
@@ -102,31 +131,31 @@ module tt_um_rejunity_ternary_dot (
 
   wire signed [1:0] y0, y1, y2, y3;
   synapse_mul synapse0(
-    .x(ui_in[0]),
+    .x(UI_IN[0]),
     .weight_zero(w[0]),
     .weight_sign(w[1]),
     .y(y0));
 
   synapse_mul synapse1(
-    .x(ui_in[1]),
+    .x(UI_IN[1]),
     .weight_zero(w[2]),
     .weight_sign(w[3]),
     .y(y1));
 
   synapse_mul synapse2(
-    .x(ui_in[2]),
+    .x(UI_IN[2]),
     .weight_zero(w[4]),
     .weight_sign(w[5]),
     .y(y2));
 
   synapse_mul synapse3(
-    .x(ui_in[3]),
+    .x(UI_IN[3]),
     .weight_zero(w[6]),
     .weight_sign(w[7]),
     .y(y3));
 
   wire signed [3:0] y = y0 + y1 + y2 + y3;
-  assign uo_out = { {4{y[3]}}, y };
+  assign UO_OUT = { {4{y[3]}}, y };
   assign sum_hi =   {8{y[3]}};
 
 `elsif SYNAPSES_4_ALT
@@ -144,7 +173,7 @@ module tt_um_rejunity_ternary_dot (
     genvar i;
     for (i = 0; i < 4; i = i+1) begin : syna
       synapse_alt alt(
-        .x(uio_in[i]),
+        .x(UIO_IN[i]),
         .weight_zero(w[i*2+0]),
         .weight_sign(w[i*2+1]),
         .positive(yp[i]),
@@ -155,12 +184,12 @@ module tt_um_rejunity_ternary_dot (
   wire [3:0] p = yp[0] + yp[1] + yp[2] + yp[3];
   wire [3:0] n = yn[0] + yn[1] + yn[2] + yn[3];
   wire signed [3:0] sum = $signed(p) - $signed(n);
-  assign uo_out = { {4{sum[3]}}, sum };
+  assign UO_OUT = { {4{sum[3]}}, sum };
   assign sum_hi =   {8{sum[3]}};
 
 `elsif SYNAPSES_N
   localparam N = 128;
-  wire [N-1:0] x = {(N/8){ui_in}};
+  wire [N-1:0] x = {(N/8){UI_IN}};
   wire signed [1:0] y[N-1:0];
   wire yp[N-1:0];
   wire yn[N-1:0];
@@ -259,7 +288,7 @@ module tt_um_rejunity_ternary_dot (
       wire signed [9:0] sum = $signed(p) - $signed(n);
 
       // output
-      assign uo_out = sum[7:0];
+      assign UO_OUT = sum[7:0];
       assign sum_hi = {{6{sum[9]}}, sum[9:8]};
 
     end else if (N == 128) begin : adder_tree_128
@@ -311,7 +340,7 @@ module tt_um_rejunity_ternary_dot (
       wire signed [8:0] sum = $signed(p) - $signed(n);
 
       // output
-      assign uo_out = sum[7:0];
+      assign UO_OUT = sum[7:0];
       assign sum_hi = {8{sum[8]}};
 
     end else if (N == 64) begin : adder_tree_64
@@ -356,7 +385,7 @@ module tt_um_rejunity_ternary_dot (
       wire signed [7:0] sum = $signed(p) - $signed(n);
 
       // output
-      assign uo_out = sum;
+      assign UO_OUT = sum;
       assign sum_hi = {8{sum[7]}};
     end else if (N == 32) begin : adder_tree_32
       // // A
@@ -433,24 +462,24 @@ module tt_um_rejunity_ternary_dot (
       wire signed [6:0] sum = $signed(p) - $signed(n);
 
       // output
-      assign uo_out = {  sum[6], sum };
+      assign UO_OUT = {  sum[6], sum };
       assign sum_hi = {8{sum[6]}};
 
     end else if (N == 16) begin : adder_tree_16
       wire signed [5:0] sum
                          = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7] + y[ 8] + y[ 9]
                          + y[10] + y[11] + y[12] + y[13] + y[14] + y[15];
-      assign uo_out = { {2{sum[5]}}, sum };
+      assign UO_OUT = { {2{sum[5]}}, sum };
       assign sum_hi =   {8{sum[5]}};
     end else if (N == 8) begin : adder_tree_8
       wire signed [4:0] sum
                          = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7];
-      assign uo_out = { {3{sum[4]}}, sum };
+      assign UO_OUT = { {3{sum[4]}}, sum };
       assign sum_hi =   {8{sum[4]}};
     end else if (N == 4) begin : adder_tree_4
       wire signed [3:0] sum
                          = y[ 0] + y[ 1] + y[ 2] + y[ 3];
-      assign uo_out = { {4{sum[3]}}, sum };
+      assign UO_OUT = { {4{sum[3]}}, sum };
       assign sum_hi =   {8{sum[3]}};
     end
 
@@ -459,7 +488,7 @@ module tt_um_rejunity_ternary_dot (
 
 `else
 
-  assign uo_out = 0;
+  assign UO_OUT = 0;
 `endif
 
 endmodule

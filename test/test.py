@@ -8,10 +8,15 @@ from cocotb.triggers import ClockCycles
 N = 128
 ND8 = N // 8
 
+WAIT_REGISTER_INPUTS_OUTPUTS = 2
+
 async def set_weights(dut, weights, n=N):
     for i in range(n):
         dut.uio_in.value = weights
         await ClockCycles(dut.clk, 1)
+
+async def execute(dut):
+    await ClockCycles(dut.clk, WAIT_REGISTER_INPUTS_OUTPUTS)
 
 def get_output(dut):
     value = dut.out.value.integer
@@ -46,53 +51,53 @@ async def test_project(dut):
     dut.ui_in.value = 1
 
     await set_weights(dut, 0b00)
-    await ClockCycles(dut.clk, 1)    
+    await execute(dut)
     assert get_output(dut) == ND8
 
     await set_weights(dut, 0b01)
-    await ClockCycles(dut.clk, 1)
+    await execute(dut)
     assert get_output(dut) == 0
 
     await set_weights(dut, 0b10)
-    await ClockCycles(dut.clk, 1)
+    await execute(dut)
     assert get_output(dut) == -ND8
 
     await set_weights(dut, 0b11)
-    await ClockCycles(dut.clk, 1)
+    await execute(dut)
     assert get_output(dut) == 0
 
 
     dut.ui_in.value = 0
 
     await set_weights(dut, 0b00)
-    await ClockCycles(dut.clk, 1)
+    await execute(dut)
     assert get_output(dut) == 0
 
     await set_weights(dut, 0b01)
-    await ClockCycles(dut.clk, 1)
+    await execute(dut)
     assert get_output(dut) == 0
 
     await set_weights(dut, 0b10)
-    await ClockCycles(dut.clk, 1)
+    await execute(dut)
     assert get_output(dut) == 0
 
     await set_weights(dut, 0b11)
-    await ClockCycles(dut.clk, 1)
+    await execute(dut)
     assert get_output(dut) == 0
 
 
     dut.ui_in.value = 0b11
 
     await set_weights(dut, 0b00)
-    await ClockCycles(dut.clk, 1)
+    await execute(dut)
     assert get_output(dut) == 2*ND8
 
     await set_weights(dut, 0b01)
-    await ClockCycles(dut.clk, 1)
+    await execute(dut)
     assert get_output(dut) == 0
 
     await set_weights(dut, 0b10)
-    await ClockCycles(dut.clk, 1)
+    await execute(dut)
     assert get_output(dut) == -2*ND8
 
 
@@ -103,13 +108,13 @@ async def test_project(dut):
     dut.ui_in.value = set_rightmost_bits(K)
 
     await set_weights(dut, 0b00)
-    await ClockCycles(dut.clk, 1)
+    await execute(dut)
     assert get_output(dut) == K*ND8
 
     await set_weights(dut, 0b01)
-    await ClockCycles(dut.clk, 1)
+    await execute(dut)
     assert get_output(dut) == 0
 
     await set_weights(dut, 0b10)
-    await ClockCycles(dut.clk, 1)
+    await execute(dut)
     assert get_output(dut) == -K*ND8
