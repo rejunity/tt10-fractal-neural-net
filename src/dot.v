@@ -24,14 +24,14 @@ module CarrySaveAdder3 (
     output sum,
     output carry
 );
-  `ifdef SIM
+  // `ifdef SIM
     assign sum = a ^ b ^ c;  // XOR for sum
     assign carry = (a & b) | (b & c) | (c & a);  // Majority function for carry
-  `else
-    /* verilator lint_off PINMISSING */
-    sky130_fd_sc_hd__fa full_adder(.A(a), .B(b), .CIN(c), .COUT(carry), .SUM(sum));
-    /* verilator lint_on PINMISSING */
-  `endif
+  // `else
+  //   /* verilator lint_off PINMISSING */
+  //   sky130_fd_sc_hd__fa full_adder(.A(a), .B(b), .CIN(c), .COUT(carry), .SUM(sum));
+  //   /* verilator lint_on PINMISSING */
+  // `endif
 endmodule
 
 module Add32 (
