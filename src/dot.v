@@ -572,12 +572,12 @@ module tt_um_rejunity_ternary_dot (
       assign UO_OUT = sum;
       assign sum_hi = {8{sum[7]}};
     end else if (N == 32) begin : adder_tree_32
-      // A
-      wire signed [6:0] sum
-                         = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7] + y[ 8] + y[ 9]
-                         + y[10] + y[11] + y[12] + y[13] + y[14] + y[15] + y[16] + y[17] + y[18] + y[19]
-                         + y[20] + y[21] + y[22] + y[23] + y[24] + y[25] + y[26] + y[27] + y[28] + y[29]
-                         + y[30] + y[31];
+      // // A
+      // wire signed [6:0] sum
+      //                    = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7] + y[ 8] + y[ 9]
+      //                    + y[10] + y[11] + y[12] + y[13] + y[14] + y[15] + y[16] + y[17] + y[18] + y[19]
+      //                    + y[20] + y[21] + y[22] + y[23] + y[24] + y[25] + y[26] + y[27] + y[28] + y[29]
+      //                    + y[30] + y[31];
 
       // // B
       // wire signed [2:0] y2 [(N/2)-1:0];
@@ -612,38 +612,38 @@ module tt_um_rejunity_ternary_dot (
       // end
 
       // D
-      // wire [1:0] p2 [(N/2)-1:0];
-      // wire [1:0] n2 [(N/2)-1:0];
-      // for (i = 0; i < N/2; i = i+1) begin : add0
-      //   assign p2[i] = yp[i*2+0] + yp[i*2+1];
-      //   assign n2[i] = yn[i*2+0] + yn[i*2+1];
-      // end
+      wire [1:0] p2 [(N/2)-1:0];
+      wire [1:0] n2 [(N/2)-1:0];
+      for (i = 0; i < N/2; i = i+1) begin : add0
+        assign p2[i] = yp[i*2+0] + yp[i*2+1];
+        assign n2[i] = yn[i*2+0] + yn[i*2+1];
+      end
 
-      // wire [2:0] p3 [(N/4)-1:0];
-      // wire [2:0] n3 [(N/4)-1:0];
-      // for (i = 0; i < N/4; i = i+1) begin : add1
-      //   assign p3[i] = p2[i*2+0] + p2[i*2+1];
-      //   assign n3[i] = n2[i*2+0] + n2[i*2+1];
-      // end
+      wire [2:0] p3 [(N/4)-1:0];
+      wire [2:0] n3 [(N/4)-1:0];
+      for (i = 0; i < N/4; i = i+1) begin : add1
+        assign p3[i] = p2[i*2+0] + p2[i*2+1];
+        assign n3[i] = n2[i*2+0] + n2[i*2+1];
+      end
 
-      // wire [3:0] p4 [(N/8)-1:0];
-      // wire [3:0] n4 [(N/8)-1:0];
-      // for (i = 0; i < N/8; i = i+1) begin : add2
-      //   assign p4[i] = p3[i*2+0] + p3[i*2+1];
-      //   assign n4[i] = n3[i*2+0] + n3[i*2+1];
-      // end
+      wire [3:0] p4 [(N/8)-1:0];
+      wire [3:0] n4 [(N/8)-1:0];
+      for (i = 0; i < N/8; i = i+1) begin : add2
+        assign p4[i] = p3[i*2+0] + p3[i*2+1];
+        assign n4[i] = n3[i*2+0] + n3[i*2+1];
+      end
 
-      // wire [4:0] p5 [(N/16)-1:0];
-      // wire [4:0] n5 [(N/16)-1:0];
-      // for (i = 0; i < N/16; i = i+1) begin : add3
-      //   assign p5[i] = p4[i*2+0] + p4[i*2+1];
-      //   assign n5[i] = n4[i*2+0] + n4[i*2+1];
-      // end
+      wire [4:0] p5 [(N/16)-1:0];
+      wire [4:0] n5 [(N/16)-1:0];
+      for (i = 0; i < N/16; i = i+1) begin : add3
+        assign p5[i] = p4[i*2+0] + p4[i*2+1];
+        assign n5[i] = n4[i*2+0] + n4[i*2+1];
+      end
 
-      // wire [6:0] p = p5[0] + p5[1];
-      // wire [6:0] n = n5[0] + n5[1];
+      wire [6:0] p = p5[0] + p5[1];
+      wire [6:0] n = n5[0] + n5[1];
 
-      // wire signed [6:0] sum = $signed(p) - $signed(n);
+      wire signed [6:0] sum = $signed(p) - $signed(n);
 
       // E
       // wire [5:0] pcount;
