@@ -572,12 +572,12 @@ module tt_um_rejunity_ternary_dot (
       assign UO_OUT = sum;
       assign sum_hi = {8{sum[7]}};
     end else if (N == 32) begin : adder_tree_32
-      // // A
-      // wire signed [6:0] sum
-      //                    = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7] + y[ 8] + y[ 9]
-      //                    + y[10] + y[11] + y[12] + y[13] + y[14] + y[15] + y[16] + y[17] + y[18] + y[19]
-      //                    + y[20] + y[21] + y[22] + y[23] + y[24] + y[25] + y[26] + y[27] + y[28] + y[29]
-      //                    + y[30] + y[31];
+      // A
+      wire signed [6:0] sum
+                         = y[ 0] + y[ 1] + y[ 2] + y[ 3] + y[ 4] + y[ 5] + y[ 6] + y[ 7] + y[ 8] + y[ 9]
+                         + y[10] + y[11] + y[12] + y[13] + y[14] + y[15] + y[16] + y[17] + y[18] + y[19]
+                         + y[20] + y[21] + y[22] + y[23] + y[24] + y[25] + y[26] + y[27] + y[28] + y[29]
+                         + y[30] + y[31];
 
       // // B
       // wire signed [2:0] y2 [(N/2)-1:0];
@@ -646,11 +646,11 @@ module tt_um_rejunity_ternary_dot (
       // wire signed [6:0] sum = $signed(p) - $signed(n);
 
       // E
-      wire [5:0] pcount;
-      wire [5:0] ncount;
-      PopCount32 p(.data(yp), .count(pcount));
-      PopCount32 n(.data(yn), .count(ncount));
-      wire signed [6:0] sum = $signed({1'b0, pcount}) - $signed({1'b0, ncount});
+      // wire [5:0] pcount;
+      // wire [5:0] ncount;
+      // PopCount32 p(.data(yp), .count(pcount));
+      // PopCount32 n(.data(yn), .count(ncount));
+      // wire signed [6:0] sum = $signed({1'b0, pcount}) - $signed({1'b0, ncount});
 
       // output
       assign UO_OUT = {  sum[6], sum };
