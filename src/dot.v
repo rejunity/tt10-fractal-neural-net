@@ -7,12 +7,193 @@
 
 `define REGISTER_INPUTS_OUTPUTS
 
+`define SERIAL_WEIGHTS
+
 // `define SYNAPSES_1
 // `define SYNAPSES_2
 // `define SYNAPSES_4
 // `define SYNAPSES_4_ALT
 `define SYNAPSES_N
-`define SERIAL_WEIGHTS
+parameter N = 32;
+
+
+module CarrySaveAdder3 (
+    input a,
+    input b,
+    input c,
+    output sum,
+    output carry
+);
+  `ifdef SIM
+    assign sum = a ^ b ^ c;  // XOR for sum
+    assign carry = (a & b) | (b & c) | (c & a);  // Majority function for carry
+  `else
+    /* verilator lint_off PINMISSING */
+    sky130_fd_sc_hd__fa full_adder(.A(a), .B(b), .CIN(c), .COUT(carry), .SUM(sum));
+    /* verilator lint_on PINMISSING */
+  `endif
+endmodule
+
+module Add32 (
+    input  [31:0] data,
+    output [11:0] sum,
+    output [ 9:0] carry
+);
+  generate
+    genvar i;
+    for (i = 0; i < 30; i = i + 3)
+      CarrySaveAdder3 add3 (
+        .a(data[i  ]),
+        .b(data[i+1]),
+        .c(data[i+2]),
+        .sum(sum[i/3]), .carry(carry[i/3]));
+  endgenerate
+  assign sum[11:10] = data[31:30];
+endmodule
+
+module Add16 (
+    input  [15:0] data,
+    output [ 5:0] sum,
+    output [ 4:0] carry
+);
+  generate
+    genvar i;
+    for (i = 0; i < 15; i = i + 3)
+      CarrySaveAdder3 add3 (
+        .a(data[i  ]),
+        .b(data[i+1]),
+        .c(data[i+2]),
+        .sum(sum[i/3]), .carry(carry[i/3]));
+  endgenerate
+  assign sum[5] = data[15];
+endmodule
+
+module Add12 (
+    input  [11:0] data,
+    output [ 3:0] sum,
+    output [ 3:0] carry
+);
+  generate
+    genvar i;
+    for (i = 0; i < 12; i = i + 3)
+      CarrySaveAdder3 add3 (
+        .a(data[i  ]),
+        .b(data[i+1]),
+        .c(data[i+2]),
+        .sum(sum[i/3]), .carry(carry[i/3]));
+  endgenerate
+endmodule
+
+module Add8 (
+    input  [ 7:0] data,
+    output [ 3:0] sum,
+    output [ 1:0] carry
+);
+  generate
+    genvar i;
+    for (i = 0; i < 6; i = i + 3)
+      CarrySaveAdder3 add3 (
+        .a(data[i  ]),
+        .b(data[i+1]),
+        .c(data[i+2]),
+        .sum(sum[i/3]), .carry(carry[i/3]));
+  endgenerate
+  assign sum[3:2] = data[7:6];
+endmodule
+
+module Add6 (
+    input  [ 5:0] data,
+    output [ 1:0] sum,
+    output [ 1:0] carry
+);
+  generate
+    genvar i;
+    for (i = 0; i < 6; i = i + 3)
+      CarrySaveAdder3 add3 (
+        .a(data[i  ]),
+        .b(data[i+1]),
+        .c(data[i+2]),
+        .sum(sum[i/3]), .carry(carry[i/3]));
+  endgenerate
+endmodule
+
+module Add4 (
+    input  [ 3:0] data,
+    output [ 1:0] sum,
+    output        carry
+);
+  CarrySaveAdder3 add3 (.a(data[0]), .b(data[1]), .c(data[2]),
+                        .sum(sum[0]), .carry(carry));
+  assign sum[1] = data[3];
+endmodule
+
+module Add2 (
+    input  [ 1:0] data,
+    output        sum,
+    output        carry
+);
+  CarrySaveAdder3 add3 (.a(data[0]), .b(data[1]), .c(1'b0),
+                        .sum(sum), .carry(carry));
+endmodule
+
+module PopCount32 (
+    input [31:0] data,
+    output [5:0] count // 6 bits to hold up to 32
+);
+  wire [11:0] bit0_stage1;
+  wire [ 3:0] bit0_stage2;
+  wire [ 1:0] bit0_stage3;
+  wire        bit0_final;
+
+  wire [ 9:0] bit1_stage1;
+  wire [ 3:0] bit1_stage2;
+  wire        bit1_stage3;
+  wire        bit1_stage4;
+
+  Add32 add1(.data(data),        .sum(bit0_stage1), .carry(bit1_stage1));
+  Add12 add2(.data(bit0_stage1), .sum(bit0_stage2), .carry(bit1_stage2));
+  Add4  add3(.data(bit0_stage2), .sum(bit0_stage3), .carry(bit1_stage3));
+  Add2  add4(.data(bit0_stage3), .sum(bit0_final),  .carry(bit1_stage4));
+
+  wire [ 5:0] bit1_stage5;
+  wire [ 1:0] bit1_stage6;
+  wire        bit1_final;
+
+  wire [ 4:0] bit2_stage5;
+  wire [ 1:0] bit2_stage6;
+  wire        bit2_stage7;
+
+  Add16 add5(.data({bit1_stage1, bit1_stage2, bit1_stage3, bit1_stage4}), .sum(bit1_stage5), .carry(bit2_stage5));
+  Add6  add6(.data(bit1_stage5),                                          .sum(bit1_stage6), .carry(bit2_stage6));
+  Add2  add7(.data(bit1_stage6),                                          .sum(bit1_final),  .carry(bit2_stage7));
+
+  wire [ 3:0] bit2_stage8;
+  wire [ 1:0] bit2_stage9;
+  wire        bit2_final;
+
+  wire [ 1:0] bit3_stage8;
+  wire        bit3_stage9;
+  wire        bit3_stage10;
+
+  Add8  add8(.data({bit2_stage5, bit2_stage6, bit2_stage7}),              .sum(bit2_stage8), .carry(bit3_stage8));
+  Add4  add9(.data(bit2_stage8),                                          .sum(bit2_stage9), .carry(bit3_stage9));
+  Add2 add10(.data(bit2_stage9),                                          .sum(bit2_final),  .carry(bit3_stage10)); 
+
+  wire [ 1:0] bit3_stage11;
+  wire        bit3_final;
+
+  wire        bit4_stage11;
+  wire        bit4_stage12;
+
+  Add4 add11(.data({bit3_stage8, bit3_stage9, bit3_stage10}),             .sum(bit3_stage11), .carry(bit4_stage11)); 
+  Add2 add12(.data(bit3_stage11),                                         .sum(bit3_final),   .carry(bit4_stage12)); 
+
+  wire [1:0]  top_bits_final = bit4_stage12 + bit4_stage11;
+
+  // Output the final count
+  assign count = {top_bits_final, bit3_final, bit2_final, bit1_final, bit0_final};
+
+endmodule
 
 module synapse_mul (
     input x,
@@ -188,11 +369,12 @@ module tt_um_rejunity_ternary_dot (
   assign sum_hi =   {8{sum[3]}};
 
 `elsif SYNAPSES_N
-  localparam N = 128;
   wire [N-1:0] x = {(N/8){UI_IN}};
   wire signed [1:0] y[N-1:0];
-  wire yp[N-1:0];
-  wire yn[N-1:0];
+  // wire yp[N-1:0];
+  // wire yn[N-1:0];
+  wire [N-1:0] yp;
+  wire [N-1:0] yn;
 
 
   reg [N*2-1:0] w;
@@ -214,6 +396,7 @@ module tt_um_rejunity_ternary_dot (
   sky130_fd_sc_hd__dlygate4sd3_1 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
   /* verilator lint_on PINMISSING */
 `endif
+
 
   generate
     genvar i;
@@ -292,6 +475,7 @@ module tt_um_rejunity_ternary_dot (
       assign sum_hi = {{6{sum[9]}}, sum[9:8]};
 
     end else if (N == 128) begin : adder_tree_128
+
       wire [1:0] p2 [(N/2)-1:0];
       wire [1:0] n2 [(N/2)-1:0];
       for (i = 0; i < N/2; i = i+1) begin : add0
@@ -428,38 +612,45 @@ module tt_um_rejunity_ternary_dot (
       // end
 
       // D
-      wire [1:0] p2 [(N/2)-1:0];
-      wire [1:0] n2 [(N/2)-1:0];
-      for (i = 0; i < N/2; i = i+1) begin : add0
-        assign p2[i] = yp[i*2+0] + yp[i*2+1];
-        assign n2[i] = yn[i*2+0] + yn[i*2+1];
-      end
+      // wire [1:0] p2 [(N/2)-1:0];
+      // wire [1:0] n2 [(N/2)-1:0];
+      // for (i = 0; i < N/2; i = i+1) begin : add0
+      //   assign p2[i] = yp[i*2+0] + yp[i*2+1];
+      //   assign n2[i] = yn[i*2+0] + yn[i*2+1];
+      // end
 
-      wire [2:0] p3 [(N/4)-1:0];
-      wire [2:0] n3 [(N/4)-1:0];
-      for (i = 0; i < N/4; i = i+1) begin : add1
-        assign p3[i] = p2[i*2+0] + p2[i*2+1];
-        assign n3[i] = n2[i*2+0] + n2[i*2+1];
-      end
+      // wire [2:0] p3 [(N/4)-1:0];
+      // wire [2:0] n3 [(N/4)-1:0];
+      // for (i = 0; i < N/4; i = i+1) begin : add1
+      //   assign p3[i] = p2[i*2+0] + p2[i*2+1];
+      //   assign n3[i] = n2[i*2+0] + n2[i*2+1];
+      // end
 
-      wire [3:0] p4 [(N/8)-1:0];
-      wire [3:0] n4 [(N/8)-1:0];
-      for (i = 0; i < N/8; i = i+1) begin : add2
-        assign p4[i] = p3[i*2+0] + p3[i*2+1];
-        assign n4[i] = n3[i*2+0] + n3[i*2+1];
-      end
+      // wire [3:0] p4 [(N/8)-1:0];
+      // wire [3:0] n4 [(N/8)-1:0];
+      // for (i = 0; i < N/8; i = i+1) begin : add2
+      //   assign p4[i] = p3[i*2+0] + p3[i*2+1];
+      //   assign n4[i] = n3[i*2+0] + n3[i*2+1];
+      // end
 
-      wire [4:0] p5 [(N/16)-1:0];
-      wire [4:0] n5 [(N/16)-1:0];
-      for (i = 0; i < N/16; i = i+1) begin : add3
-        assign p5[i] = p4[i*2+0] + p4[i*2+1];
-        assign n5[i] = n4[i*2+0] + n4[i*2+1];
-      end
+      // wire [4:0] p5 [(N/16)-1:0];
+      // wire [4:0] n5 [(N/16)-1:0];
+      // for (i = 0; i < N/16; i = i+1) begin : add3
+      //   assign p5[i] = p4[i*2+0] + p4[i*2+1];
+      //   assign n5[i] = n4[i*2+0] + n4[i*2+1];
+      // end
 
-      wire [6:0] p = p5[0] + p5[1];
-      wire [6:0] n = n5[0] + n5[1];
+      // wire [6:0] p = p5[0] + p5[1];
+      // wire [6:0] n = n5[0] + n5[1];
 
-      wire signed [6:0] sum = $signed(p) - $signed(n);
+      // wire signed [6:0] sum = $signed(p) - $signed(n);
+
+      // E
+      wire [5:0] pcount;
+      wire [5:0] ncount;
+      PopCount32 p(.data(yp), .count(pcount));
+      PopCount32 n(.data(yn), .count(ncount));
+      wire signed [6:0] sum = $signed({1'b0, pcount}) - $signed({1'b0, ncount});
 
       // output
       assign UO_OUT = {  sum[6], sum };

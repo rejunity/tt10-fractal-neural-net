@@ -15,6 +15,10 @@ module tb ();
 
   wire [15:0] out = { {3{uio_out[7]}}, uio_out[6:2], uo_out[7:0] };
 
+  wire [31:0] pop32_data;
+  wire [5:0] pop32_count;
+  PopCount32 test_pop32(.data(pop32_data), .count(pop32_count));
+
   // Wire up the inputs and outputs:
   reg clk;
   reg rst_n;

@@ -5,7 +5,7 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles
 
-N = 128
+N = 32
 ND8 = N // 8
 
 WAIT_REGISTER_INPUTS_OUTPUTS = 2
@@ -24,6 +24,55 @@ def get_output(dut):
     if value & 0x8000:
         value -= 0x10000
     return value
+
+@cocotb.test()
+async def test_pop32(dut):
+    dut._log.info("Start")
+
+    # Set the clock period to 10 us (100 KHz)
+    clock = Clock(dut.clk, 10, units="ns")
+    cocotb.start_soon(clock.start())
+    await ClockCycles(dut.clk, 1)
+
+    def population_count(n: int) -> int:
+        # Use bit manipulation to count 1s
+        count = 0
+        while n:
+            count += n & 1  # Add the least significant bit
+            n >>= 1         # Shift right to process the next bit
+        return count
+
+    dut._log.info("Check low 16 bit")
+    for i in range(0xFFFF):
+        dut.test_pop32.data.value = i
+        await ClockCycles(dut.clk, 1)
+        assert dut.test_pop32.count.value == population_count(i)
+
+    dut._log.info("Checker patterns")
+    i = 0xAAAA_AAAA
+    for j in range(32):
+        dut.test_pop32.data.value = i
+        await ClockCycles(dut.clk, 1)
+        assert dut.test_pop32.count.value == population_count(i)
+        i >>= 1
+
+    i = 0xAAAA_AAAA
+    for j in range(32):
+        i &= 0xFFFFFFFF
+        dut.test_pop32.data.value = i
+        await ClockCycles(dut.clk, 1)
+        assert dut.test_pop32.count.value == population_count(i)
+        i <<= 1
+
+    dut._log.info("Fill pattern")
+    for k in range(31):
+        i = (1 << k) - 1
+        for j in range(32):
+            i &= 0xFFFFFFFF
+            dut.test_pop32.data.value = i
+            await ClockCycles(dut.clk, 1)
+            assert dut.test_pop32.count.value == population_count(i)
+            i <<= 1
 
 @cocotb.test()
 async def test_project(dut):
