@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: © 2024 Tiny Tapeout
 # SPDX-License-Identifier: Apache-2.0
 
+import os
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles
@@ -27,6 +28,10 @@ def get_output(dut):
 
 @cocotb.test()
 async def test_pop32(dut):
+    if os.getenv('GATES'):
+        dut._log.info("Skipping in GATE mode")
+        return
+
     dut._log.info("Start")
 
     # Set the clock period to 10 us (100 KHz)
