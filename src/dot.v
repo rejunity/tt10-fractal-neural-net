@@ -29,7 +29,7 @@ module CarrySaveAdder3 (
     assign carry = (a & b) | (b & c) | (c & a);  // Majority function for carry
   `else
     /* verilator lint_off PINMISSING */
-    sky130_fd_sc_hd__fa__1 full_adder(.A(a), .B(b), .CIN(c), .COUT(carry), .SUM(sum));
+    sky130_fd_sc_hd__fa_1 full_adder(.A(a), .B(b), .CIN(c), .COUT(carry), .SUM(sum));
     /* verilator lint_on PINMISSING */
   `endif
 endmodule
