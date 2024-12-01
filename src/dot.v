@@ -137,7 +137,7 @@ module Add2 (
                           .sum(sum), .carry(carry));
   `else
     /* verilator lint_off PINMISSING */
-    sky130_fd_sc_hd__ha_1 half_adder(.A(a), .B(b), .COUT(carry), .SUM(sum));
+    sky130_fd_sc_hd__ha_1 half_adder(.A(data[0]), .B(data[1]), .COUT(carry), .SUM(sum));
     /* verilator lint_on PINMISSING */
   `endif
 endmodule
