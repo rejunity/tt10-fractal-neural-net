@@ -17,7 +17,7 @@ parameter N = 32;
 
 `ifdef SIM
 `else
-// `define USE_HA_FA_CELLS
+`define USE_HA_FA_CELLS
 `endif
 
 
