@@ -6,7 +6,6 @@
 `default_nettype none
 
 `define REGISTER_INPUTS_OUTPUTS
-
 `define SERIAL_WEIGHTS
 
 // `define SYNAPSES_1
@@ -16,6 +15,11 @@
 `define SYNAPSES_N
 parameter N = 32;
 
+`ifdef SIM
+`else
+// `define USE_HA_FA_CELLS
+`endif
+
 
 module CarrySaveAdder3 (
     input a,
@@ -24,13 +28,28 @@ module CarrySaveAdder3 (
     output sum,
     output carry
 );
-  `ifdef SIM
-    assign sum = a ^ b ^ c;  // XOR for sum
-    assign carry = (a & b) | (b & c) | (c & a);  // Majority function for carry
-  `else
+  `ifdef USE_HA_FA_CELLS
     /* verilator lint_off PINMISSING */
     sky130_fd_sc_hd__fa_1 full_adder(.A(a), .B(b), .CIN(c), .COUT(carry), .SUM(sum));
     /* verilator lint_on PINMISSING */
+  `else
+    assign sum = a ^ b ^ c;  // XOR for sum
+    assign carry = (a & b) | (b & c) | (c & a);  // Majority function for carry
+  `endif
+endmodule
+
+module Add2 (
+    input  [ 1:0] data,
+    output        sum,
+    output        carry
+);
+  `ifdef USE_HA_FA_CELLS
+    /* verilator lint_off PINMISSING */
+    sky130_fd_sc_hd__ha_1 half_adder(.A(data[0]), .B(data[1]), .COUT(carry), .SUM(sum));
+    /* verilator lint_on PINMISSING */
+  `else
+    CarrySaveAdder3 add3 (.a(data[0]), .b(data[1]), .c(1'b0),
+                          .sum(sum), .carry(carry));
   `endif
 endmodule
 
@@ -127,24 +146,10 @@ module Add4 (
   assign sum[1] = data[3];
 endmodule
 
-module Add2 (
-    input  [ 1:0] data,
-    output        sum,
-    output        carry
-);
-  `ifdef SIM
-    CarrySaveAdder3 add3 (.a(data[0]), .b(data[1]), .c(1'b0),
-                          .sum(sum), .carry(carry));
-  `else
-    /* verilator lint_off PINMISSING */
-    sky130_fd_sc_hd__ha_1 half_adder(.A(data[0]), .B(data[1]), .COUT(carry), .SUM(sum));
-    /* verilator lint_on PINMISSING */
-  `endif
-endmodule
 
 module PopCount32 (
     input [31:0] data,
-    output [5:0] count // 6 bits to hold up to 32
+    output [5:0] count // 6 bits to hold from 0 to 32 (inclusive)
 );
   wire [11:0] bit0_stage1;
   wire [ 3:0] bit0_stage2;
@@ -194,10 +199,12 @@ module PopCount32 (
   Add4 add11(.data({bit3_stage8, bit3_stage9, bit3_stage10}),             .sum(bit3_stage11), .carry(bit4_stage11));  // 1
   Add2 add12(.data(bit3_stage11),                                         .sum(bit3_final),   .carry(bit4_stage12)); 
 
-  wire [1:0]  top_bits_final = bit4_stage12 + bit4_stage11;
+  wire        bit4_final, bit5_final;
+
+  Add2 addFF(.data({bit4_stage12, bit4_stage11}),                         .sum(bit4_final),   .carry(bit5_final));
 
   // Output the final count
-  assign count = {top_bits_final, bit3_final, bit2_final, bit1_final, bit0_final};
+  assign count = {bit5_final, bit4_final, bit3_final, bit2_final, bit1_final, bit0_final};
 
 endmodule
 
@@ -609,16 +616,16 @@ module tt_um_rejunity_ternary_dot (
       // wire signed [6:0] sum = y5[0] + y5[1];
 
       // C
-      wire [5:0] p = yp[ 0] + yp[ 1] + yp[ 2] + yp[ 3] + yp[ 4] + yp[ 5] + yp[ 6] + yp[ 7] + yp[ 8] + yp[ 9]
-                   + yp[10] + yp[11] + yp[12] + yp[13] + yp[14] + yp[15] + yp[16] + yp[17] + yp[18] + yp[19]
-                   + yp[20] + yp[21] + yp[22] + yp[23] + yp[24] + yp[25] + yp[26] + yp[27] + yp[28] + yp[29]
-                   + yp[30] + yp[31];
-      wire [5:0] n = yn[ 0] + yn[ 1] + yn[ 2] + yn[ 3] + yn[ 4] + yn[ 5] + yn[ 6] + yn[ 7] + yn[ 8] + yn[ 9]
-                   + yn[10] + yn[11] + yn[12] + yn[13] + yn[14] + yn[15] + yn[16] + yn[17] + yn[18] + yn[19]
-                   + yn[20] + yn[21] + yn[22] + yn[23] + yn[24] + yn[25] + yn[26] + yn[27] + yn[28] + yn[29]
-                   + yn[30] + yn[31];
+      // wire [5:0] p = yp[ 0] + yp[ 1] + yp[ 2] + yp[ 3] + yp[ 4] + yp[ 5] + yp[ 6] + yp[ 7] + yp[ 8] + yp[ 9]
+      //              + yp[10] + yp[11] + yp[12] + yp[13] + yp[14] + yp[15] + yp[16] + yp[17] + yp[18] + yp[19]
+      //              + yp[20] + yp[21] + yp[22] + yp[23] + yp[24] + yp[25] + yp[26] + yp[27] + yp[28] + yp[29]
+      //              + yp[30] + yp[31];
+      // wire [5:0] n = yn[ 0] + yn[ 1] + yn[ 2] + yn[ 3] + yn[ 4] + yn[ 5] + yn[ 6] + yn[ 7] + yn[ 8] + yn[ 9]
+      //              + yn[10] + yn[11] + yn[12] + yn[13] + yn[14] + yn[15] + yn[16] + yn[17] + yn[18] + yn[19]
+      //              + yn[20] + yn[21] + yn[22] + yn[23] + yn[24] + yn[25] + yn[26] + yn[27] + yn[28] + yn[29]
+      //              + yn[30] + yn[31];
 
-      wire signed [6:0] sum = $signed({1'b0, p}) - $signed({1'b0, n});
+      // wire signed [6:0] sum = $signed({1'b0, p}) - $signed({1'b0, n});
 
       // // C FAULTY
       // reg signed [6:0] sum = 0;
@@ -665,11 +672,11 @@ module tt_um_rejunity_ternary_dot (
 
       // E -- Wallace tree approach to the adder tree
       //      See: https://en.wikipedia.org/wiki/Wallace_tree
-      // wire [5:0] pcount;
-      // wire [5:0] ncount;
-      // PopCount32 p(.data(yp), .count(pcount));
-      // PopCount32 n(.data(yn), .count(ncount));
-      // wire signed [6:0] sum = $signed({1'b0, pcount}) - $signed({1'b0, ncount});
+      wire [5:0] pcount;
+      wire [5:0] ncount;
+      PopCount32 p(.data(yp), .count(pcount));
+      PopCount32 n(.data(yn), .count(ncount));
+      wire signed [6:0] sum = $signed({1'b0, pcount}) - $signed({1'b0, ncount});
 
       // output
       assign UO_OUT = {  sum[6], sum };
