@@ -608,6 +608,18 @@ module tt_um_rejunity_ternary_dot (
 
       // wire signed [6:0] sum = y5[0] + y5[1];
 
+      // C
+      wire [5:0] p = yp[ 0] + yp[ 1] + yp[ 2] + yp[ 3] + yp[ 4] + yp[ 5] + yp[ 6] + yp[ 7] + yp[ 8] + yp[ 9]
+                   + yp[10] + yp[11] + yp[12] + yp[13] + yp[14] + yp[15] + yp[16] + yp[17] + yp[18] + yp[19]
+                   + yp[20] + yp[21] + yp[22] + yp[23] + yp[24] + yp[25] + yp[26] + yp[27] + yp[28] + yp[29]
+                   + yp[30] + yp[31];
+      wire [5:0] n = yn[ 0] + yn[ 1] + yn[ 2] + yn[ 3] + yn[ 4] + yn[ 5] + yn[ 6] + yn[ 7] + yn[ 8] + yn[ 9]
+                   + yn[10] + yn[11] + yn[12] + yn[13] + yn[14] + yn[15] + yn[16] + yn[17] + yn[18] + yn[19]
+                   + yn[20] + yn[21] + yn[22] + yn[23] + yn[24] + yn[25] + yn[26] + yn[27] + yn[28] + yn[29]
+                   + yn[30] + yn[31];
+
+      wire signed [6:0] sum = $signed({1'b0, p}) - $signed({1'b0, n});
+
       // // C FAULTY
       // reg signed [6:0] sum = 0;
       // // integer n;
@@ -653,11 +665,11 @@ module tt_um_rejunity_ternary_dot (
 
       // E -- Wallace tree approach to the adder tree
       //      See: https://en.wikipedia.org/wiki/Wallace_tree
-      wire [5:0] pcount;
-      wire [5:0] ncount;
-      PopCount32 p(.data(yp), .count(pcount));
-      PopCount32 n(.data(yn), .count(ncount));
-      wire signed [6:0] sum = $signed({1'b0, pcount}) - $signed({1'b0, ncount});
+      // wire [5:0] pcount;
+      // wire [5:0] ncount;
+      // PopCount32 p(.data(yp), .count(pcount));
+      // PopCount32 n(.data(yn), .count(ncount));
+      // wire signed [6:0] sum = $signed({1'b0, pcount}) - $signed({1'b0, ncount});
 
       // output
       assign UO_OUT = {  sum[6], sum };
