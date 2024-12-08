@@ -236,60 +236,16 @@ module tt_um_rejunity_ternary_dot (
         .negative(yn[i]));
     end
 
-    if (N == 256) begin : adder_tree_128
-      wire [1:0] p2 [(N/2)-1:0];
-      wire [1:0] n2 [(N/2)-1:0];
-      for (i = 0; i < N/2; i = i+1) begin : add0
-        assign p2[i] = yp[i*2+0] + yp[i*2+1];
-        assign n2[i] = yn[i*2+0] + yn[i*2+1];
-      end
+    if (N == 256) begin : adder_tree_256
 
-      wire [2:0] p3 [(N/4)-1:0];
-      wire [2:0] n3 [(N/4)-1:0];
-      for (i = 0; i < N/4; i = i+1) begin : add1
-        assign p3[i] = p2[i*2+0] + p2[i*2+1];
-        assign n3[i] = n2[i*2+0] + n2[i*2+1];
-      end
-
-      wire [3:0] p4 [(N/8)-1:0];
-      wire [3:0] n4 [(N/8)-1:0];
-      for (i = 0; i < N/8; i = i+1) begin : add2
-        assign p4[i] = p3[i*2+0] + p3[i*2+1];
-        assign n4[i] = n3[i*2+0] + n3[i*2+1];
-      end
-
-      wire [4:0] p5 [(N/16)-1:0];
-      wire [4:0] n5 [(N/16)-1:0];
-      for (i = 0; i < N/16; i = i+1) begin : add3
-        assign p5[i] = p4[i*2+0] + p4[i*2+1];
-        assign n5[i] = n4[i*2+0] + n4[i*2+1];
-      end
-
-      wire [5:0] p6 [(N/32)-1:0];
-      wire [5:0] n6 [(N/32)-1:0];
-      for (i = 0; i < N/32; i = i+1) begin : add4
-        assign p6[i] = p5[i*2+0] + p5[i*2+1];
-        assign n6[i] = n5[i*2+0] + n5[i*2+1];
-      end
-
-      wire [6:0] p7 [(N/64)-1:0];
-      wire [6:0] n7 [(N/64)-1:0];
-      for (i = 0; i < N/64; i = i+1) begin : add5
-        assign p7[i] = p6[i*2+0] + p6[i*2+1];
-        assign n7[i] = n6[i*2+0] + n6[i*2+1];
-      end
-
-      wire [7:0] p8 [(N/128)-1:0];
-      wire [7:0] n8 [(N/128)-1:0];
-      for (i = 0; i < N/128; i = i+1) begin : add6
-        assign p8[i] = p7[i*2+0] + p7[i*2+1];
-        assign n8[i] = n7[i*2+0] + n7[i*2+1];
-      end
-
-      wire [9:0] p = p8[0] + p8[1];
-      wire [9:0] n = n8[0] + n8[1];
-
-      wire signed [9:0] sum = $signed(p) - $signed(n);
+      wire [7:0] pcount0, pcount1;
+      wire [7:0] ncount0, ncount1;
+      PopCount128 n0(.data(yn[127:  0]), .count(ncount0));
+      PopCount128 p0(.data(yp[127:  0]), .count(pcount0));
+      PopCount128 n1(.data(yn[255:128]), .count(ncount1));
+      PopCount128 p1(.data(yp[255:128]), .count(pcount1));
+      wire signed [9:0] sum = $signed({1'b0, pcount0 + pcount1}) -
+                              $signed({1'b0, ncount0 + ncount1});
 
       // output
       assign UO_OUT = sum[7:0];
@@ -297,101 +253,28 @@ module tt_um_rejunity_ternary_dot (
 
     end else if (N == 128) begin : adder_tree_128
 
-      wire [1:0] p2 [(N/2)-1:0];
-      wire [1:0] n2 [(N/2)-1:0];
-      for (i = 0; i < N/2; i = i+1) begin : add0
-        assign p2[i] = yp[i*2+0] + yp[i*2+1];
-        assign n2[i] = yn[i*2+0] + yn[i*2+1];
-      end
-
-      wire [2:0] p3 [(N/4)-1:0];
-      wire [2:0] n3 [(N/4)-1:0];
-      for (i = 0; i < N/4; i = i+1) begin : add1
-        assign p3[i] = p2[i*2+0] + p2[i*2+1];
-        assign n3[i] = n2[i*2+0] + n2[i*2+1];
-      end
-
-      wire [3:0] p4 [(N/8)-1:0];
-      wire [3:0] n4 [(N/8)-1:0];
-      for (i = 0; i < N/8; i = i+1) begin : add2
-        assign p4[i] = p3[i*2+0] + p3[i*2+1];
-        assign n4[i] = n3[i*2+0] + n3[i*2+1];
-      end
-
-      wire [4:0] p5 [(N/16)-1:0];
-      wire [4:0] n5 [(N/16)-1:0];
-      for (i = 0; i < N/16; i = i+1) begin : add3
-        assign p5[i] = p4[i*2+0] + p4[i*2+1];
-        assign n5[i] = n4[i*2+0] + n4[i*2+1];
-      end
-
-      wire [5:0] p6 [(N/32)-1:0];
-      wire [5:0] n6 [(N/32)-1:0];
-      for (i = 0; i < N/32; i = i+1) begin : add4
-        assign p6[i] = p5[i*2+0] + p5[i*2+1];
-        assign n6[i] = n5[i*2+0] + n5[i*2+1];
-      end
-
-      wire [6:0] p7 [(N/64)-1:0];
-      wire [6:0] n7 [(N/64)-1:0];
-      for (i = 0; i < N/64; i = i+1) begin : add5
-        assign p7[i] = p6[i*2+0] + p6[i*2+1];
-        assign n7[i] = n6[i*2+0] + n6[i*2+1];
-      end
-
-      wire [8:0] p = p7[0] + p7[1];
-      wire [8:0] n = n7[0] + n7[1];
-
-      wire signed [8:0] sum = $signed(p) - $signed(n);
+      wire [7:0] pcount;
+      wire [7:0] ncount;
+      PopCount128 p(.data(yp), .count(pcount));
+      PopCount128 n(.data(yn), .count(ncount));
+      wire signed [8:0] sum = $signed({1'b0, pcount}) - $signed({1'b0, ncount});
 
       // output
       assign UO_OUT = sum[7:0];
       assign sum_hi = {8{sum[8]}};
 
     end else if (N == 64) begin : adder_tree_64
-      wire [1:0] p2 [(N/2)-1:0];
-      wire [1:0] n2 [(N/2)-1:0];
-      for (i = 0; i < N/2; i = i+1) begin : add0
-        assign p2[i] = yp[i*2+0] + yp[i*2+1];
-        assign n2[i] = yn[i*2+0] + yn[i*2+1];
-      end
 
-      wire [2:0] p3 [(N/4)-1:0];
-      wire [2:0] n3 [(N/4)-1:0];
-      for (i = 0; i < N/4; i = i+1) begin : add1
-        assign p3[i] = p2[i*2+0] + p2[i*2+1];
-        assign n3[i] = n2[i*2+0] + n2[i*2+1];
-      end
-
-      wire [3:0] p4 [(N/8)-1:0];
-      wire [3:0] n4 [(N/8)-1:0];
-      for (i = 0; i < N/8; i = i+1) begin : add2
-        assign p4[i] = p3[i*2+0] + p3[i*2+1];
-        assign n4[i] = n3[i*2+0] + n3[i*2+1];
-      end
-
-      wire [4:0] p5 [(N/16)-1:0];
-      wire [4:0] n5 [(N/16)-1:0];
-      for (i = 0; i < N/16; i = i+1) begin : add3
-        assign p5[i] = p4[i*2+0] + p4[i*2+1];
-        assign n5[i] = n4[i*2+0] + n4[i*2+1];
-      end
-
-      wire [5:0] p6 [(N/32)-1:0];
-      wire [5:0] n6 [(N/32)-1:0];
-      for (i = 0; i < N/32; i = i+1) begin : add4
-        assign p6[i] = p5[i*2+0] + p5[i*2+1];
-        assign n6[i] = n5[i*2+0] + n5[i*2+1];
-      end
-
-      wire [7:0] p = p6[0] + p6[1];
-      wire [7:0] n = n6[0] + n6[1];
-
-      wire signed [7:0] sum = $signed(p) - $signed(n);
+      wire [6:0] pcount;
+      wire [6:0] ncount;
+      PopCount64 p(.data(yp), .count(pcount));
+      PopCount64 n(.data(yn), .count(ncount));
+      wire signed [7:0] sum = $signed({1'b0, pcount}) - $signed({1'b0, ncount});
 
       // output
       assign UO_OUT = sum;
       assign sum_hi = {8{sum[7]}};
+
     end else if (N == 32) begin : adder_tree_32
       // // A
       // wire signed [6:0] sum
