@@ -34,6 +34,19 @@ $$y=\sum_{i=1}^{N} {\color{Red} A_{i}}\times {\color{Green} B_{i}},
 
 *) *Version taped out with TinyTapeout 10*
 
+
+### Comparison betweeen adder-tree versions
+
+| Type                              | Tiles | Wire length (um) | Setup Worst Slack | Setup Slack (Typical) | fMax |
+|-----------------------------------|-------|------------------|-------------------|---------|-|
+| Naive `v[0]+v[1]+v[2]+ ...`   | 38.395 % | 12040 |	7.3ns |	13.48ns | 153 MHz |
+| Adder tree                        |	38.466 % | 11425 | 7.3ns  | 13.45ns | 152 MHz |
+| Logic, carry save adder           | 38.136 % | 10931 | 6.9ns  | 13.41ns | 151 MHz |
+| **HA/FA cells**, carry save adder | 28.712 % | 9164  | **3.5ns** | 12.24ns | **129 MHz** |
+
+Note that there is no significant area difference between various approaches **unless** sky130 [HA/FA cells](https://skywater-pdk.readthedocs.io/en/main/contents/libraries/sky130_fd_sc_hd/cells/fa/README.html) are used!
+
+
 ### Physical layout for a 128 element dot product
 ![128synapses_1x2tiles_layout](https://github.com/user-attachments/assets/992c77d7-3006-492a-9d75-d1a13e4c0221)
 _Left:_ **blue cells** - compute, **white cells** - ternary vector storage \
