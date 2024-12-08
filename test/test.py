@@ -41,11 +41,18 @@ async def test_popcount(dut, popcount, bits):
     def set_rightmost_bits(n):
         return (1 << n) - 1 # Generate a bitmask with the N rightmost bits set
 
-    dut._log.info("Check low 16 bit")
+    dut._log.info("Validate low 16 bit")
     for i in range(0xFFFF):
         popcount.data.value = i
         await ClockCycles(dut.clk, 1)
         assert popcount.count.value == population_count(i)
+
+    dut._log.info("Validate in 8-bit chunks")
+    for j in range(bits//8):
+        for i in range(0xFF):
+            popcount.data.value = i << (j*8)
+            await ClockCycles(dut.clk, 1)
+            assert popcount.count.value == population_count(i)
 
     dut._log.info("Checker patterns")
     v = set_every_2nd_bit(bits)
