@@ -10,173 +10,6 @@
 `define USE_HA_FA_CELLS
 `endif
 
-module CarrySaveAdder3 (
-    input a,
-    input b,
-    input c,
-    output sum,
-    output carry
-);
-  `ifdef USE_HA_FA_CELLS
-    /* verilator lint_off PINMISSING */
-    sky130_fd_sc_hd__fa_1 full_adder(.A(a), .B(b), .CIN(c), .COUT(carry), .SUM(sum));
-    /* verilator lint_on PINMISSING */
-  `else
-    assign sum = a ^ b ^ c;  // XOR for sum
-    assign carry = (a & b) | (b & c) | (c & a);  // Majority function for carry
-  `endif
-endmodule
-
-module Add2 (
-    input  [ 1:0] data,
-    output        sum,
-    output        carry
-);
-  `ifdef USE_HA_FA_CELLS
-    /* verilator lint_off PINMISSING */
-    sky130_fd_sc_hd__ha_1 half_adder(.A(data[0]), .B(data[1]), .COUT(carry), .SUM(sum));
-    /* verilator lint_on PINMISSING */
-  `else
-    CarrySaveAdder3 add3 (.a(data[0]), .b(data[1]), .c(1'b0),
-                          .sum(sum), .carry(carry));
-  `endif
-endmodule
-
-module Add4 (
-    input  [ 3:0] data,
-    output [ 1:0] sum,
-    output        carry
-);
-  CarrySaveAdder3 add3 (.a(data[0]), .b(data[1]), .c(data[2]),
-                        .sum(sum[0]), .carry(carry));
-  assign sum[1] = data[3];
-endmodule
-
-module Add6 (
-    input  [ 5:0] data,
-    output [ 1:0] sum,
-    output [ 1:0] carry
-);
-  generate
-    genvar i;
-    for (i = 0; i < 6; i = i + 3)
-      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
-        .sum(sum[i/3]), .carry(carry[i/3]));
-  endgenerate
-endmodule
-
-module Add8 (
-    input  [ 7:0] data,
-    output [ 3:0] sum,
-    output [ 1:0] carry
-);
-  generate
-    genvar i;
-    for (i = 0; i < 6; i = i + 3)
-      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
-        .sum(sum[i/3]), .carry(carry[i/3]));
-  endgenerate
-  assign sum[3:2] = data[7:6];
-endmodule
-
-module Add12 (
-    input  [11:0] data,
-    output [ 3:0] sum,
-    output [ 3:0] carry
-);
-  generate
-    genvar i;
-    for (i = 0; i < 12; i = i + 3)
-      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
-        .sum(sum[i/3]), .carry(carry[i/3]));
-  endgenerate
-endmodule
-
-module Add16 (
-    input  [15:0] data,
-    output [ 5:0] sum,
-    output [ 4:0] carry
-);
-  generate
-    genvar i;
-    for (i = 0; i < 15; i = i + 3)
-      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
-        .sum(sum[i/3]), .carry(carry[i/3]));
-  endgenerate
-  assign sum[5] = data[15];
-endmodule
-
-module Add22 (
-    input  [21:0] data,
-    output [ 7:0] sum,
-    output [ 6:0] carry
-);
-  generate
-    genvar i;
-    for (i = 0; i < 21; i = i + 3)
-      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
-        .sum(sum[i/3]), .carry(carry[i/3]));
-  endgenerate
-  assign sum[7] = data[21];
-endmodule
-
-module Add32 (
-    input  [31:0] data,
-    output [11:0] sum,
-    output [ 9:0] carry
-);
-  generate
-    genvar i;
-    for (i = 0; i < 30; i = i + 3)
-      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
-        .sum(sum[i/3]), .carry(carry[i/3]));
-  endgenerate
-  assign sum[11:10] = data[31:30];
-endmodule
-
-module Add44 (
-    input  [43:0] data,
-    output [15:0] sum,
-    output [13:0] carry
-);
-  generate
-    genvar i;
-    for (i = 0; i < 42; i = i + 3)
-      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
-        .sum(sum[i/3]), .carry(carry[i/3]));
-  endgenerate
-  assign sum[15:14] = data[43:42];
-endmodule
-
-module Add64 (
-    input  [63:0] data,
-    output [21:0] sum,
-    output [20:0] carry
-);
-  generate
-    genvar i;
-    for (i = 0; i < 63; i = i + 3)
-      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
-        .sum(sum[i/3]), .carry(carry[i/3]));
-  endgenerate
-  assign sum[21] = data[63];
-endmodule
-
-module Add128 (
-    input  [127:0] data,
-    output  [43:0] sum,
-    output  [41:0] carry
-);
-  generate
-    genvar i;
-    for (i = 0; i < 126; i = i + 3)
-      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
-        .sum(sum[i/3]), .carry(carry[i/3]));
-  endgenerate
-  assign sum[43:42] = data[127:126];
-endmodule
-
-
 module PopCount128 (
   input [127:0] data,
   output  [7:0] count // 8 bits to hold from 0 to 128 (inclusive)
@@ -285,3 +118,173 @@ module PopCount32 (
   assign count = {bit5_final, bit4_final, bit3_final, bit2_final, bit1_final, bit0_final};
 
 endmodule
+
+
+
+module Add128 (
+    input  [127:0] data,
+    output  [43:0] sum,
+    output  [41:0] carry
+);
+  generate
+    genvar i;
+    for (i = 0; i < 126; i = i + 3)
+      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
+        .sum(sum[i/3]), .carry(carry[i/3]));
+  endgenerate
+  assign sum[43:42] = data[127:126];
+endmodule
+
+module Add64 (
+    input  [63:0] data,
+    output [21:0] sum,
+    output [20:0] carry
+);
+  generate
+    genvar i;
+    for (i = 0; i < 63; i = i + 3)
+      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
+        .sum(sum[i/3]), .carry(carry[i/3]));
+  endgenerate
+  assign sum[21] = data[63];
+endmodule
+
+module Add44 (
+    input  [43:0] data,
+    output [15:0] sum,
+    output [13:0] carry
+);
+  generate
+    genvar i;
+    for (i = 0; i < 42; i = i + 3)
+      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
+        .sum(sum[i/3]), .carry(carry[i/3]));
+  endgenerate
+  assign sum[15:14] = data[43:42];
+endmodule
+
+module Add32 (
+    input  [31:0] data,
+    output [11:0] sum,
+    output [ 9:0] carry
+);
+  generate
+    genvar i;
+    for (i = 0; i < 30; i = i + 3)
+      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
+        .sum(sum[i/3]), .carry(carry[i/3]));
+  endgenerate
+  assign sum[11:10] = data[31:30];
+endmodule
+
+module Add22 (
+    input  [21:0] data,
+    output [ 7:0] sum,
+    output [ 6:0] carry
+);
+  generate
+    genvar i;
+    for (i = 0; i < 21; i = i + 3)
+      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
+        .sum(sum[i/3]), .carry(carry[i/3]));
+  endgenerate
+  assign sum[7] = data[21];
+endmodule
+
+module Add16 (
+    input  [15:0] data,
+    output [ 5:0] sum,
+    output [ 4:0] carry
+);
+  generate
+    genvar i;
+    for (i = 0; i < 15; i = i + 3)
+      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
+        .sum(sum[i/3]), .carry(carry[i/3]));
+  endgenerate
+  assign sum[5] = data[15];
+endmodule
+
+module Add12 (
+    input  [11:0] data,
+    output [ 3:0] sum,
+    output [ 3:0] carry
+);
+  generate
+    genvar i;
+    for (i = 0; i < 12; i = i + 3)
+      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
+        .sum(sum[i/3]), .carry(carry[i/3]));
+  endgenerate
+endmodule
+
+module Add8 (
+    input  [ 7:0] data,
+    output [ 3:0] sum,
+    output [ 1:0] carry
+);
+  generate
+    genvar i;
+    for (i = 0; i < 6; i = i + 3)
+      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
+        .sum(sum[i/3]), .carry(carry[i/3]));
+  endgenerate
+  assign sum[3:2] = data[7:6];
+endmodule
+
+module Add6 (
+    input  [ 5:0] data,
+    output [ 1:0] sum,
+    output [ 1:0] carry
+);
+  generate
+    genvar i;
+    for (i = 0; i < 6; i = i + 3)
+      CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
+        .sum(sum[i/3]), .carry(carry[i/3]));
+  endgenerate
+endmodule
+
+module Add4 (
+    input  [ 3:0] data,
+    output [ 1:0] sum,
+    output        carry
+);
+  CarrySaveAdder3 add3 (.a(data[0]), .b(data[1]), .c(data[2]),
+                        .sum(sum[0]), .carry(carry));
+  assign sum[1] = data[3];
+endmodule
+
+
+module Add2 (
+    input  [ 1:0] data,
+    output        sum,
+    output        carry
+);
+  `ifdef USE_HA_FA_CELLS
+    /* verilator lint_off PINMISSING */
+    sky130_fd_sc_hd__ha_1 half_adder(.A(data[0]), .B(data[1]), .COUT(carry), .SUM(sum));
+    /* verilator lint_on PINMISSING */
+  `else
+    CarrySaveAdder3 add3 (.a(data[0]), .b(data[1]), .c(1'b0),
+                          .sum(sum), .carry(carry));
+  `endif
+endmodule
+
+module CarrySaveAdder3 (
+    input a,
+    input b,
+    input c,
+    output sum,
+    output carry
+);
+  `ifdef USE_HA_FA_CELLS
+    /* verilator lint_off PINMISSING */
+    sky130_fd_sc_hd__fa_1 full_adder(.A(a), .B(b), .CIN(c), .COUT(carry), .SUM(sum));
+    /* verilator lint_on PINMISSING */
+  `else
+    assign sum = a ^ b ^ c;  // XOR for sum
+    assign carry = (a & b) | (b & c) | (c & a);  // Majority function for carry
+  `endif
+endmodule
+
