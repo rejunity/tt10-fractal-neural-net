@@ -19,6 +19,15 @@ module tb ();
   wire [31:0] pop32_data;
   wire [5:0] pop32_count;
   PopCount32 test_pop32(.data(pop32_data), .count(pop32_count));
+
+  wire [63:0] pop64_data;
+  wire [6:0] pop64_count;
+  PopCount64 test_pop64(.data(pop64_data), .count(pop64_count));
+
+  wire [127:0] pop128_data;
+  wire [7:0] pop128_count;
+  PopCount128 test_pop128(.data(pop128_data), .count(pop128_count));
+
 `endif
 
   // Wire up the inputs and outputs:

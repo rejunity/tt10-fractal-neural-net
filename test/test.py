@@ -92,6 +92,19 @@ async def test_pop32(dut):
     await test_popcount(dut, dut.test_pop32, 32)
 
 @cocotb.test()
+async def test_pop64(dut):
+    if os.getenv('GATES'):
+        dut._log.info("Skipping in GATE mode")
+        return
+
+    dut._log.info("Start")
+    clock = Clock(dut.clk, 10, units="ns")
+    cocotb.start_soon(clock.start())
+    await ClockCycles(dut.clk, 1)
+
+    await test_popcount(dut, dut.test_pop64, 64)
+
+@cocotb.test()
 async def test_pop128(dut):
     if os.getenv('GATES'):
         dut._log.info("Skipping in GATE mode")
@@ -102,7 +115,7 @@ async def test_pop128(dut):
     cocotb.start_soon(clock.start())
     await ClockCycles(dut.clk, 1)
 
-    # sawait test_popcount(dut.test_pop128, 128)
+    await test_popcount(dut, dut.test_pop128, 128)
 
 @cocotb.test()
 async def test_project(dut):
