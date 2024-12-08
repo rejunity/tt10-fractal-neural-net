@@ -92,20 +92,6 @@ module Add12 (
   endgenerate
 endmodule
 
-// module Add14 (
-//     input  [13:0] data,
-//     output [ 5:0] sum,
-//     output [ 3:0] carry
-// );
-//   generate
-//     genvar i;
-//     for (i = 0; i < 12; i = i + 3)
-//       CarrySaveAdder3 add3 (.a(data[i  ]), .b(data[i+1]), .c(data[i+2]),
-//         .sum(sum[i/3]), .carry(carry[i/3]));
-//   endgenerate
-//   assign sum[5:4] = data[13:12];
-// endmodule
-
 module Add16 (
     input  [15:0] data,
     output [ 5:0] sum,
@@ -195,92 +181,47 @@ module PopCount128 (
   input [127:0] data,
   output  [7:0] count // 8 bits to hold from 0 to 128 (inclusive)
 );
-  wire [127:0] bit0_in = data;
   wire [43:0] bit0_stage1;
   wire [15:0] bit0_stage2;
   wire [ 5:0] bit0_stage3;
   wire [ 1:0] bit0_stage4;
-  wire        bit0_final;
   wire [41:0] bit1_stage1;
   wire [13:0] bit1_stage2;
   wire [ 4:0] bit1_stage3;
   wire [ 1:0] bit1_stage4;
   wire        bit1_stage5;
-  Add128 ad0(.data(bit0_in),     .sum(bit0_stage1), .carry(bit1_stage1)); // 42
+  Add128 ad0(.data(data),        .sum(bit0_stage1), .carry(bit1_stage1)); // 42
   Add44 add1(.data(bit0_stage1), .sum(bit0_stage2), .carry(bit1_stage2)); // 14
   Add16 add3(.data(bit0_stage2), .sum(bit0_stage3), .carry(bit1_stage3)); // 5
   Add6  add4(.data(bit0_stage3), .sum(bit0_stage4), .carry(bit1_stage4)); // 2
-  Add2  add5(.data(bit0_stage4), .sum(bit0_final),  .carry(bit1_stage5)); // 0.625
+  Add2  add5(.data(bit0_stage4), .sum(count[0]),    .carry(bit1_stage5)); // 0.625
 
-  wire [63:0] bit1_in = {bit1_stage1, bit1_stage2, bit1_stage3, bit1_stage4, bit1_stage5};
-  wire [21:0] bit1_stage6;
-  wire [ 7:0] bit1_stage7;
-  wire [ 3:0] bit1_stage8;
-  wire [ 1:0] bit1_stage9;
-  wire        bit1_final;
-  wire [20:0] bit2_stage1;
-  wire [ 6:0] bit2_stage2;
-  wire [ 1:0] bit2_stage3;
-  wire        bit2_stage4;
-  wire        bit2_stage5;
-  Add64 add6(.data(bit1_in),     .sum(bit1_stage6), .carry(bit2_stage1)); // 21
-  Add22 add7(.data(bit1_stage6), .sum(bit1_stage7), .carry(bit2_stage2)); // 7
-  Add8  add8(.data(bit1_stage7), .sum(bit1_stage8), .carry(bit2_stage3)); // 2
-  Add4  add9(.data(bit1_stage8), .sum(bit1_stage9), .carry(bit2_stage4)); // 1
-  Add2  ad10(.data(bit1_stage9), .sum(bit1_final),  .carry(bit2_stage5)); // 0.625
+  wire [63:0] pop64 = {bit1_stage1, bit1_stage2, bit1_stage3, bit1_stage4, bit1_stage5};
+  PopCount64 count64(.data(pop64), .count(count[7:1]));
 
-  wire [31:0] bit2_in = {bit2_stage1, bit2_stage2, bit2_stage3, bit2_stage4, bit2_stage5};
-  wire [11:0] bit2_stage6;
-  wire [ 3:0] bit2_stage7;
-  wire [ 1:0] bit2_stage8;
-  wire        bit2_final;
-  wire [ 9:0] bit3_stage1;
-  wire [ 3:0] bit3_stage2;
-  wire        bit3_stage3;
-  wire        bit3_stage4;
-  Add32 ad11(.data(bit2_in),     .sum(bit2_stage6), .carry(bit3_stage1)); // 10
-  Add12 ad12(.data(bit2_stage6), .sum(bit2_stage7), .carry(bit3_stage2)); // 4
-  Add4  ad13(.data(bit2_stage7), .sum(bit2_stage8), .carry(bit3_stage3)); // 1
-  Add2  ad14(.data(bit2_stage8), .sum(bit2_final),  .carry(bit3_stage4)); // 0.625
+endmodule
 
-  wire [15:0] bit3_in = {bit3_stage1, bit3_stage2, bit3_stage3, bit3_stage4};
-  wire [ 5:0] bit3_stage5;
-  wire [ 1:0] bit3_stage6;
-  wire        bit3_final;
-  wire [ 4:0] bit4_stage5;
-  wire [ 1:0] bit4_stage6;
-  wire        bit4_stage7;
-  Add16 ad15(.data(bit3_in),     .sum(bit3_stage5), .carry(bit4_stage5));  // 5
-  Add6  ad16(.data(bit3_stage5), .sum(bit3_stage6), .carry(bit4_stage6));  // 2
-  Add2  ad17(.data(bit3_stage6), .sum(bit3_final),  .carry(bit4_stage7));  // 0.625
+module PopCount64 (
+  input [63:0] data,
+  output [6:0] count // 7 bits to hold from 0 to 64 (inclusive)
+);
+  wire [21:0] bit0_stage1;
+  wire [ 7:0] bit0_stage2;
+  wire [ 3:0] bit0_stage3;
+  wire [ 1:0] bit0_stage4;
+  wire [20:0] bit1_stage1;
+  wire [ 6:0] bit1_stage2;
+  wire [ 1:0] bit1_stage3;
+  wire        bit1_stage4;
+  wire        bit1_stage5;
+  Add64 add1(.data(data),        .sum(bit0_stage1), .carry(bit1_stage1)); // 21
+  Add22 add2(.data(bit0_stage1), .sum(bit0_stage2), .carry(bit1_stage2)); // 7
+  Add8  add3(.data(bit0_stage2), .sum(bit0_stage3), .carry(bit1_stage3)); // 2
+  Add4  add4(.data(bit0_stage3), .sum(bit0_stage4), .carry(bit1_stage4)); // 1
+  Add2  add5(.data(bit0_stage4), .sum(count[0]),    .carry(bit1_stage5)); // 0.625
 
-  wire [ 7:0] bit4_in ={bit4_stage5, bit4_stage6, bit4_stage7};
-  wire [ 3:0] bit4_stage8;
-  wire [ 1:0] bit4_stage9;
-  wire        bit4_final;
-  wire [ 1:0] bit5_stage1;
-  wire        bit5_stage2;
-  wire        bit5_stage3;
-  Add8  ad18(.data(bit4_in),     .sum(bit4_stage8), .carry(bit5_stage1)); // 2
-  Add4  ad19(.data(bit4_stage8), .sum(bit4_stage9), .carry(bit5_stage2)); // 1
-  Add2 add20(.data(bit4_stage9), .sum(bit4_final),  .carry(bit5_stage3)); // 0.625
-
-  wire [ 3:0] bit5_in = {bit5_stage1, bit5_stage2, bit5_stage3};
-  wire [ 1:0] bit5_stage4;
-  wire        bit5_final;
-  wire        bit6_stage11;
-  wire        bit6_stage12;
-  Add4 add21(.data(bit5_in),     .sum(bit5_stage4), .carry(bit7_stage1));  // 1
-  Add2 add22(.data(bit5_stage4), .sum(bit5_final),  .carry(bit7_stage2));  // 0.625
-
-  wire [1:0]  bit6_in = {bit6_stage1, bit6_stage2};
-  wire        bit6_final;
-  wire        bit7_final;
-  Add2 add23(.data(bit6_in),      .sum(bit6_final),   .carry(bit7_final)); // 0.625
-
-  // Output the final count
-  assign count = {bit7_final, bit6_final, bit5_final, bit4_final,
-                  bit3_final, bit2_final, bit1_final, bit0_final};
+  wire [31:0] pop32 = {bit1_stage1, bit1_stage2, bit1_stage3, bit1_stage4, bit1_stage5};
+  PopCount32 count32(.data(pop32), .count(count[6:1]));
 
 endmodule
 
