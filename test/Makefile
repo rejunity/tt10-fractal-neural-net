@@ -5,7 +5,7 @@
 SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = dot.v
+PROJECT_SOURCES = dot.v popcount.v
 
 ifneq ($(GATES),yes)
 
