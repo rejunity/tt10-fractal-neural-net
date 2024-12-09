@@ -13,7 +13,7 @@
 // `define SYNAPSES_4
 // `define SYNAPSES_4_ALT
 `define SYNAPSES_N
-parameter N = 64;
+parameter N = 32;
 
 
 module synapse_mul (
@@ -215,9 +215,14 @@ module tt_um_rejunity_ternary_dot (
 
   `else
     reg [$clog2(N*2)-1:0] write_index;
-    always @(posedge clk) if (            ~rst_n)   write_index     <= 0;
-    always @(posedge clk) if (uio_in[0] && rst_n)   write_index     <= write_index + 8;
-    always @(posedge clk) if (uio_in[0] && rst_n) w[write_index+:8] <= ui_in[7:0];
+    always @(posedge clk) begin
+      if (~rst_n)
+        write_index <= 0;
+      else if (uio_in[0]) begin
+        w[write_index+:8] <= ui_in[7:0];
+        write_index <= write_index + 8;
+      end
+    end
     assign w_buf = w;
   `endif
 
