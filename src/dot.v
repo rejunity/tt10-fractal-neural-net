@@ -13,7 +13,7 @@
 // `define SYNAPSES_4
 // `define SYNAPSES_4_ALT
 `define SYNAPSES_N
-parameter N = 64;
+parameter N = 128;
 
 
 module synapse_mul (
