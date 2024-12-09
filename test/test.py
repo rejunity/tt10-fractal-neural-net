@@ -6,7 +6,7 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles
 
-N = 32
+N = 64
 ND8 = N // 8
 
 SERIAL_WEIGHTS = False # True
