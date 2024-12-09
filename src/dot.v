@@ -6,7 +6,7 @@
 `default_nettype none
 
 `define REGISTER_INPUTS_OUTPUTS
-`define SERIAL_WEIGHTS
+// `define SERIAL_WEIGHTS
 
 // `define SYNAPSES_1
 // `define SYNAPSES_2
@@ -101,7 +101,7 @@ module tt_um_rejunity_ternary_dot (
   `ifdef SERIAL_WEIGHTS
     always @(posedge clk) w <= { w[1:0], uio_in[1:0] };
   `else
-    always @(posedge clk) w <= uio_in[3:0];
+    always @(posedge clk) if (uio_in[0]) w <= ui_in[3:0];
   `endif
 
 
@@ -128,7 +128,7 @@ module tt_um_rejunity_ternary_dot (
   `ifdef SERIAL_WEIGHTS
     always @(posedge clk) w <= { w[5:0], uio_in[1:0] };
   `else
-    always @(posedge clk) w <= uio_in[7:0];
+    always @(posedge clk) if (uio_in[0]) w <= ui_in[7:0];
   `endif
 
   wire signed [1:0] y0, y1, y2, y3;
@@ -166,7 +166,7 @@ module tt_um_rejunity_ternary_dot (
   `ifdef SERIAL_WEIGHTS
     always @(posedge clk) w <= { w[5:0], uio_in[1:0] };
   `else
-    always @(posedge clk) w <= uio_in[7:0];
+    always @(posedge clk) if (uio_in[0]) w <= ui_in[7:0];
   `endif
 
   wire [3:0] yp;
@@ -197,27 +197,29 @@ module tt_um_rejunity_ternary_dot (
   wire [N-1:0] yp;
   wire [N-1:0] yn;
 
-
   reg [N*2-1:0] w;
   wire [N*2-1:0] w_buf;
-  always @(posedge clk) w <= { w_buf[N*2-2-1:0], uio_in[1:0] };
-`ifdef SIM
-  /* verilator lint_off ASSIGNDLY */
-  buf i_w_buf[N*2-1:0] (w_buf, w[N*2-1:0]);
-  /* verilator lint_on ASSIGNDLY */
-// `elsif SCL_sky130_fd_sc_hd
-//   sky130_fd_sc_hd__clkbuf_2 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
-// `elsif SCL_sky130_fd_sc_hs
-//   sky130_fd_sc_hs__clkbuf_2 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
-// `else
-//   assign w_buf = w[N*2-1:0];   // On SG13G2 no buffer is required, use direct assignment
-`else
-  /* verilator lint_off PINMISSING */
-  // sky130_fd_sc_hd__clkbuf_2 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
-  sky130_fd_sc_hd__dlygate4sd3_1 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
-  /* verilator lint_on PINMISSING */
-`endif
+  `ifdef SERIAL_WEIGHTS
+    always @(posedge clk) w <= { w_buf[N*2-2-1:0], uio_in[1:0] };
 
+    `ifdef SIM
+      /* verilator lint_off ASSIGNDLY */
+      buf i_w_buf[N*2-1:0] (w_buf, w[N*2-1:0]);
+      /* verilator lint_on ASSIGNDLY */
+    `else
+      /* verilator lint_off PINMISSING */
+      // sky130_fd_sc_hd__clkbuf_2 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
+      sky130_fd_sc_hd__dlygate4sd3_1 i_w_buf[N*2-1:0] ( .X(w_buf), .A(w[N*2-1:0]) );
+      /* verilator lint_on PINMISSING */
+    `endif
+
+  `else
+    reg [$clog2(N*2)-1:0] write_index;
+    always @(posedge clk) if (            ~rst_n)   write_index     <= 0;
+    always @(posedge clk) if (uio_in[0] && rst_n)   write_index     <= write_index + 8;
+    always @(posedge clk) if (uio_in[0] && rst_n) w[write_index+:8] <= ui_in[7:0];
+    assign w_buf = w;
+  `endif
 
   generate
     genvar i;

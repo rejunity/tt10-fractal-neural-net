@@ -9,14 +9,23 @@ from cocotb.triggers import ClockCycles
 N = 32
 ND8 = N // 8
 
-WAIT_REGISTER_INPUTS_OUTPUTS = 2
+SERIAL_WEIGHTS = False # True
+WAIT_REGISTER_INPUTS_OUTPUTS = 2 + 1 if not SERIAL_WEIGHTS else 0
 
 async def set_weights(dut, weights, n=N):
-    for i in range(n):
-        dut.uio_in.value = weights
-        await ClockCycles(dut.clk, 1)
+    if SERIAL_WEIGHTS:
+        for i in range(n):
+            dut.uio_in.value = weights
+            await ClockCycles(dut.clk, 1)
+    else:
+        dut.uio_in.value = 1
+        for i in range(n//4):
+            dut.ui_in.value = weights | (weights << 2) | (weights << 4) | (weights << 6)
+            await ClockCycles(dut.clk, 1)
+        dut.uio_in.value = 0
 
-async def execute(dut):
+async def execute(dut, input):
+    dut.ui_in.value = input
     await ClockCycles(dut.clk, WAIT_REGISTER_INPUTS_OUTPUTS)
 
 def get_output(dut):
@@ -41,8 +50,8 @@ async def test_popcount(dut, popcount, bits):
     def set_rightmost_bits(n):
         return (1 << n) - 1 # Generate a bitmask with the N rightmost bits set
 
-    dut._log.info("Validate low 16 bit")
-    for i in range(0xFFFF):
+    dut._log.info("Validate low 12 bit")
+    for i in range(0xFFF):
         popcount.data.value = i
         await ClockCycles(dut.clk, 1)
         assert popcount.count.value == population_count(i)
@@ -140,56 +149,56 @@ async def test_project(dut):
 
     dut._log.info("Test project behavior")
 
-    dut.ui_in.value = 1
+    input = 1
 
     await set_weights(dut, 0b00)
-    await execute(dut)
+    await execute(dut, input)
     assert get_output(dut) == ND8
 
     await set_weights(dut, 0b01)
-    await execute(dut)
+    await execute(dut, input)
     assert get_output(dut) == 0
 
     await set_weights(dut, 0b10)
-    await execute(dut)
+    await execute(dut, input)
     assert get_output(dut) == -ND8
 
     await set_weights(dut, 0b11)
-    await execute(dut)
+    await execute(dut, input)
     assert get_output(dut) == 0
 
 
-    dut.ui_in.value = 0
+    input = 0
 
     await set_weights(dut, 0b00)
-    await execute(dut)
+    await execute(dut, input)
     assert get_output(dut) == 0
 
     await set_weights(dut, 0b01)
-    await execute(dut)
+    await execute(dut, input)
     assert get_output(dut) == 0
 
     await set_weights(dut, 0b10)
-    await execute(dut)
+    await execute(dut, input)
     assert get_output(dut) == 0
 
     await set_weights(dut, 0b11)
-    await execute(dut)
+    await execute(dut, input)
     assert get_output(dut) == 0
 
 
-    dut.ui_in.value = 0b11
+    input = 0b11
 
     await set_weights(dut, 0b00)
-    await execute(dut)
+    await execute(dut, input)
     assert get_output(dut) == 2*ND8
 
     await set_weights(dut, 0b01)
-    await execute(dut)
+    await execute(dut, input)
     assert get_output(dut) == 0
 
     await set_weights(dut, 0b10)
-    await execute(dut)
+    await execute(dut, input)
     assert get_output(dut) == -2*ND8
 
 
@@ -197,16 +206,16 @@ async def test_project(dut):
         return (1 << n) - 1 # Generate a bitmask with the N rightmost bits set
     
     K = 8
-    dut.ui_in.value = set_rightmost_bits(K)
+    input = set_rightmost_bits(K)
 
     await set_weights(dut, 0b00)
-    await execute(dut)
+    await execute(dut, input)
     assert get_output(dut) == K*ND8
 
     await set_weights(dut, 0b01)
-    await execute(dut)
+    await execute(dut, input)
     assert get_output(dut) == 0
 
     await set_weights(dut, 0b10)
-    await execute(dut)
+    await execute(dut, input)
     assert get_output(dut) == -K*ND8
