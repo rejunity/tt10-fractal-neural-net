@@ -6,7 +6,7 @@
 `default_nettype none
 
 `define REGISTER_INPUTS_OUTPUTS
-// `define SERIAL_WEIGHTS
+`define SERIAL_WEIGHTS
 
 // `define SYNAPSES_1
 // `define SYNAPSES_2

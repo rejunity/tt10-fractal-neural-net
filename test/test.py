@@ -9,8 +9,8 @@ from cocotb.triggers import ClockCycles
 N = 32
 ND8 = N // 8
 
-SERIAL_WEIGHTS = False # True
-WAIT_REGISTER_INPUTS_OUTPUTS = 2 + 1 if not SERIAL_WEIGHTS else 0
+SERIAL_WEIGHTS = True
+WAIT_REGISTER_INPUTS_OUTPUTS = 3
 
 async def set_weights(dut, weights, n=N):
     if SERIAL_WEIGHTS:
